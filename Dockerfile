@@ -5,9 +5,7 @@ WORKDIR /workdir
 RUN pip3 install --no-cache-dir \
     git+https://github.com/ruotianluo/ImageCaptioning.pytorch.git@cd651fafa56e33a1d77ba1493c9785d766daa828 \
     gdown==3.12.2 \
-    yacs==0.1.8 \
-    requests==2.24.0 \
-    ipywidgets==7.5.1
+    yacs==0.1.8
 
 RUN git clone --depth 1 -b master --single-branch https://gitlab.com/vedanuj/vqa-maskrcnn-benchmark.git &&\
     cd vqa-maskrcnn-benchmark &&\

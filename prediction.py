@@ -1,19 +1,8 @@
-import yaml
 import cv2
 import torch
-import requests
 import numpy as np
-import gc
-import torch.nn.functional as F
-import pandas as pd
-
-import torchvision.models as models
-import torchvision.transforms as transforms
 
 from PIL import Image
-from IPython.display import display, HTML, clear_output
-from ipywidgets import widgets, Layout
-from io import BytesIO
 
 from maskrcnn_benchmark.config import cfg
 from maskrcnn_benchmark.layers import nms
@@ -21,7 +10,6 @@ from maskrcnn_benchmark.modeling.detector import build_detection_model
 from maskrcnn_benchmark.structures.image_list import to_image_list
 from maskrcnn_benchmark.utils.model_serialization import load_state_dict
 
-import captioning
 import captioning.utils.misc
 import captioning.models
 
@@ -31,11 +19,9 @@ class FeatureExtractor:
         self.device = torch.device(device)
         self.detection_model = self._build_detection_model(checkpoint_path, config_path)
 
+    @torch.no_grad()
     def __call__(self, url):
-        with torch.no_grad():
-            detectron_features = self.get_detectron_features(url)
-
-        return detectron_features
+        return self.get_detectron_features(url)
 
     def _build_detection_model(self, checkpoint_path, config_path):
         cfg.merge_from_file(config_path)
@@ -50,7 +36,8 @@ class FeatureExtractor:
         model.eval()
         return model
 
-    def _image_transform(self, image_path):
+    @staticmethod
+    def _image_transform(image_path):
         img = Image.open(image_path).convert("RGB")
         im = np.array(img).astype(np.float32)
         im = im[:, :, ::-1]
@@ -68,7 +55,8 @@ class FeatureExtractor:
         img = torch.from_numpy(im).permute(2, 0, 1)
         return img, im_scale
 
-    def _process_feature_extraction(self, output, im_scales, feat_name="fc6"):
+    @staticmethod
+    def _process_feature_extraction(output, im_scales, feat_name="fc6"):
         batch_size = len(output[0]["proposals"])
         n_boxes_per_image = [len(_) for _ in output[0]["proposals"]]
         score_list = output[0]["scores"].split(n_boxes_per_image)
@@ -108,6 +96,10 @@ class FeatureExtractor:
 
 if __name__ == "__main__":
     device = "cpu"
+    image_path = "test.png"
+    beam_size = 5
+    sample_n = 5
+
     feature_extractor = FeatureExtractor(
         checkpoint_path="model_data/detectron_model.pth",
         config_path="model_data/detectron_model.yaml",
@@ -119,20 +111,20 @@ if __name__ == "__main__":
     )
     infos["opt"].vocab = infos["vocab"]
 
-    model = captioning.models.setup(infos["opt"])
-    model.to(device)
-    model.load_state_dict(torch.load("model_data/model-best.pth"))
+    caption_model = captioning.models.setup(infos["opt"])
+    caption_model.to(device)
+    caption_model.load_state_dict(torch.load("model_data/model-best.pth"))
 
-    def get_captions(img_feature):
-        # Return the 5 captions from beam serach with beam size 5
-        return model.decode_sequence(
-            model(
-                img_feature.mean(0)[None],
-                img_feature[None],
-                mode="sample",
-                opt={"beam_size": 5, "sample_method": "beam_search", "sample_n": 5},
-            )[0]
-        )
-
-    captions = get_captions(feature_extractor('test.png'))
+    image_feature = feature_extractor(image_path)
+    sequence = caption_model(
+        image_feature.mean(0)[None],
+        image_feature[None],
+        mode="sample",
+        opt={
+            "beam_size": beam_size,
+            "sample_method": "beam_search",
+            "sample_n": sample_n,
+        },
+    )[0]
+    captions = caption_model.decode_sequence(sequence)
     print(captions)
