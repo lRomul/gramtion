@@ -94,37 +94,66 @@ class FeatureExtractor:
         return feat_list[0]
 
 
+class CaptionPredictor:
+    def __init__(self,
+                 feature_checkpoint_path,
+                 feature_config_path,
+                 caption_checkpoint_path,
+                 caption_config_path,
+                 beam_size=5,
+                 sample_n=5,
+                 device="cpu"):
+        self.device = torch.device(device)
+        self.beam_size = beam_size
+        self.sample_n = sample_n
+        self.feature_extractor = FeatureExtractor(
+            checkpoint_path=feature_checkpoint_path,
+            config_path=feature_config_path,
+            device=device,
+        )
+        self.caption_model = self._build_caption_model(caption_checkpoint_path,
+                                                       caption_config_path)
+
+    def _build_caption_model(self, checkpoint_path, config_path):
+        infos = captioning.utils.misc.pickle_load(
+            open(config_path, "rb")
+        )
+        infos["opt"].vocab = infos["vocab"]
+        caption_model = captioning.models.setup(infos["opt"])
+        caption_model.to(self.device)
+        caption_model.load_state_dict(torch.load(checkpoint_path))
+        return caption_model
+
+    def get_captions(self, image_path):
+        image_feature = self.feature_extractor(image_path)
+        sequence = self.caption_model(
+            image_feature.mean(0)[None],
+            image_feature[None],
+            mode="sample",
+            opt={
+                "beam_size": self.beam_size,
+                "sample_method": "beam_search",
+                "sample_n": self.sample_n,
+            },
+        )[0]
+        captions = self.caption_model.decode_sequence(sequence)
+        return captions
+
+
 if __name__ == "__main__":
     device = "cpu"
     image_path = "test.png"
     beam_size = 5
-    sample_n = 5
+    sample_n = 1
 
-    feature_extractor = FeatureExtractor(
-        checkpoint_path="model_data/detectron_model.pth",
-        config_path="model_data/detectron_model.yaml",
-        device=device,
+    model = CaptionPredictor(
+        "model_data/detectron_model.pth",
+        "model_data/detectron_model.yaml",
+        "model_data/model-best.pth",
+        "model_data/infos_trans12-best.pkl",
+        beam_size=beam_size,
+        sample_n=sample_n,
+        device=device
     )
 
-    infos = captioning.utils.misc.pickle_load(
-        open("model_data/infos_trans12-best.pkl", "rb")
-    )
-    infos["opt"].vocab = infos["vocab"]
-
-    caption_model = captioning.models.setup(infos["opt"])
-    caption_model.to(device)
-    caption_model.load_state_dict(torch.load("model_data/model-best.pth"))
-
-    image_feature = feature_extractor(image_path)
-    sequence = caption_model(
-        image_feature.mean(0)[None],
-        image_feature[None],
-        mode="sample",
-        opt={
-            "beam_size": beam_size,
-            "sample_method": "beam_search",
-            "sample_n": sample_n,
-        },
-    )[0]
-    captions = caption_model.decode_sequence(sequence)
-    print(captions)
+    print(model.get_captions("test.png"))
