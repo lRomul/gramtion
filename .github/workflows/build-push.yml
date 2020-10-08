@@ -13,13 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Login to GitHub Docker Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username:
-          password: ${{ secrets.DOCKER_PAT }}
-      - name: Push Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v1
         with:
           registry: ghcr.io
