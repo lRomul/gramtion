@@ -23,6 +23,8 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PAT }}
       - name: Push Docker image
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
         run: |
-          docker tag gramtion ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
-          docker push ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
+          docker tag gramtion $IMAGE_NAME
+          docker push $IMAGE_NAME
