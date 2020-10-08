@@ -13,11 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v1
+      - name: Build Docker image
+        run: |
+          docker build -t gramtion .
+      - name: Login to GitHub Docker Registry
+        uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.DOCKER_PAT }}
-          repository: ${{ github.repository }}
-          tags: ${{ github.event.inputs.tag }}
+      - name: Push Docker image
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
+        run: |
+          docker tag gramtion ${IMAGE_NAME,,}
+          docker push ${IMAGE_NAME,,}
