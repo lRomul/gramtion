@@ -143,10 +143,10 @@ class CaptionPredictor:
 
 if __name__ == "__main__":
     predictor = CaptionPredictor(
-        "model_data/detectron_model.pth",
-        "model_data/detectron_model.yaml",
-        "model_data/model-best.pth",
-        "model_data/infos_trans12-best.pkl",
+        "/model_data/detectron_model.pth",
+        "/model_data/detectron_model.yaml",
+        "/model_data/model-best.pth",
+        "/model_data/infos_trans12-best.pkl",
         beam_size=5,
         sample_n=5,
         device="cpu",
