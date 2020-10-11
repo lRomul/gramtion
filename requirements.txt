@@ -1,0 +1,3 @@
+yacs==0.1.8
+tweepy==3.9.0
+pydantic==1.6.1

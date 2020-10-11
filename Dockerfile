@@ -23,4 +23,8 @@ RUN wget -O model_data/detectron_model.pth \
     wget -O model_data/detectron_model.yaml \
     https://dl.fbaipublicfiles.com/vilbert-multi-task/detectron_config.yaml
 
+# Install python packages
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
 COPY . /workdir

@@ -1,5 +1,6 @@
 NAME?=gramtion
 COMMAND?=bash
+OPTIONS?=
 
 GPUS?=all
 ifeq ($(GPUS),none)
@@ -23,6 +24,7 @@ stop:
 .PHONY: run
 run:
 	docker run --rm -dit \
+		$(OPTIONS) \
 		$(GPUS_OPTION) \
 		--name=$(NAME) \
 		$(NAME) \
