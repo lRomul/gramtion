@@ -1,5 +1,6 @@
 import cv2
 import torch
+import requests
 import numpy as np
 
 from PIL import Image
@@ -12,6 +13,33 @@ from maskrcnn_benchmark.utils.model_serialization import load_state_dict
 
 import captioning.utils.misc
 import captioning.models
+
+
+def load_pil_image(path):
+    if path.startswith('http'):
+        path = requests.get(path, stream=True).raw
+    else:
+        path = path
+    image = Image.open(path).convert("RGB")
+    return image
+
+
+def image_transform(image):
+    image = np.array(image).astype(np.float32)
+    image = image[:, :, ::-1]
+    image -= np.array([102.9801, 115.9465, 122.7717])
+    im_shape = image.shape
+    im_size_min = np.min(im_shape[0:2])
+    im_size_max = np.max(im_shape[0:2])
+    image_scale = float(800) / float(im_size_min)
+    # Prevent the biggest axis from being more than max_size
+    if np.round(image_scale * im_size_max) > 1333:
+        image_scale = float(1333) / float(im_size_max)
+    image = cv2.resize(
+        image, None, None, fx=image_scale, fy=image_scale, interpolation=cv2.INTER_LINEAR
+    )
+    img = torch.from_numpy(image).permute(2, 0, 1)
+    return img, image_scale
 
 
 class FeatureExtractor:
@@ -35,25 +63,6 @@ class FeatureExtractor:
         model.to(self.device)
         model.eval()
         return model
-
-    @staticmethod
-    def _image_transform(image_path):
-        img = Image.open(image_path).convert("RGB")
-        im = np.array(img).astype(np.float32)
-        im = im[:, :, ::-1]
-        im -= np.array([102.9801, 115.9465, 122.7717])
-        im_shape = im.shape
-        im_size_min = np.min(im_shape[0:2])
-        im_size_max = np.max(im_shape[0:2])
-        im_scale = float(800) / float(im_size_min)
-        # Prevent the biggest axis from being more than max_size
-        if np.round(im_scale * im_size_max) > 1333:
-            im_scale = float(1333) / float(im_size_max)
-        im = cv2.resize(
-            im, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR
-        )
-        img = torch.from_numpy(im).permute(2, 0, 1)
-        return img, im_scale
 
     @staticmethod
     def _process_feature_extraction(output, im_scales, feat_name="fc6"):
@@ -84,9 +93,9 @@ class FeatureExtractor:
         return feat_list
 
     @torch.no_grad()
-    def get_detectron_features(self, image_path):
-        im, im_scale = self._image_transform(image_path)
-        img_tensor, im_scales = [im], [im_scale]
+    def get_detectron_features(self, image):
+        img, img_scale = image_transform(image)
+        img_tensor, im_scales = [img], [img_scale]
         current_img_list = to_image_list(img_tensor, size_divisible=32)
         current_img_list = current_img_list.to(self.device)
         output = self.detection_model(current_img_list)
@@ -152,4 +161,4 @@ if __name__ == "__main__":
         device="cpu",
     )
 
-    print(predictor.get_captions("test.jpg"))
+    print(predictor.get_captions(load_pil_image("test.jpg")))
