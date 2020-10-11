@@ -5,7 +5,7 @@ RUN pip3 install --no-cache-dir \
     gdown==3.12.2 \
     yacs==0.1.8
 
-RUN cd / && git clone --depth 1 -b master --single-branch https://gitlab.com/vedanuj/vqa-maskrcnn-benchmark.git &&\
+RUN cd / && git clone -b master --single-branch https://gitlab.com/vedanuj/vqa-maskrcnn-benchmark.git &&\
     cd vqa-maskrcnn-benchmark &&\
     git checkout 4c168a637f45dc69efed384c00a7f916f57b25b8 &&\
     python3 setup.py build &&\
