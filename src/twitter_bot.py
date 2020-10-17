@@ -19,10 +19,15 @@ def check_mentions(api, since_id):
 
         logger.info(f"Answering to {tweet.user.name}")
 
-        api.update_status(
-            status="Test",
-            in_reply_to_status_id=tweet.id,
-        )
+        try:
+            api.update_status(
+                status="Test",
+                in_reply_to_status_id=tweet.id,
+            )
+        except tweepy.TweepError as error:
+            logging.error(f"Raised error: {error}")
+            if error.api_code != 187:
+                raise error
     return new_since_id
 
 
@@ -36,4 +41,4 @@ if __name__ == "__main__":
     while True:
         since_id = check_mentions(api, since_id)
         logger.info("Waiting...")
-        time.sleep(1)
+        time.sleep(15)
