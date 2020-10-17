@@ -39,6 +39,7 @@ def check_mentions(api, since_id):
                     api.update_status(
                         status=caption,
                         in_reply_to_status_id=tweet.id,
+                        auto_populate_reply_metadata=True
                     )
                 except tweepy.TweepError as error:
                     logging.error(f"Raised error: {error}")
