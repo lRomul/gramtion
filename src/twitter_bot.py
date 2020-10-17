@@ -40,14 +40,17 @@ def check_mentions(api, since_id):
     new_since_id = since_id
     for tweet in tweepy.Cursor(api.mentions_timeline, since_id=since_id).items():
         new_since_id = max(tweet.id, new_since_id)
+        if tweet.user.id == api.me().id:
+            continue
 
+        username = tweet.user.screen_name
         photo_url = None
         if tweet_has_photo(tweet):
             photo_url = get_photo_url(tweet)
         elif tweet_is_reply(tweet):
-            replied_tweet = api.get_status(tweet.in_reply_to_status_id)
-            if tweet_has_photo(replied_tweet):
-                photo_url = get_photo_url(replied_tweet)
+            tweet = api.get_status(tweet.in_reply_to_status_id)
+            if tweet_has_photo(tweet):
+                photo_url = get_photo_url(tweet)
 
         if photo_url is not None:
             image = load_pil_image(photo_url)
@@ -55,7 +58,7 @@ def check_mentions(api, since_id):
 
             try:
                 api.update_status(
-                    status=caption,
+                    status=f"@{username}, {caption}",
                     in_reply_to_status_id=tweet.id,
                     auto_populate_reply_metadata=True
                 )
