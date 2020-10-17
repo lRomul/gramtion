@@ -19,32 +19,50 @@ predictor = CaptionPredictor(
 )
 
 
+def tweet_has_photo(tweet):
+    if 'media' in tweet.entities:
+        media = tweet.entities['media'][0]
+        if media['type'] == 'photo':
+            return True
+    return False
+
+
+def get_photo_url(tweet):
+    return tweet.entities['media'][0]['media_url_https']
+
+
+def tweet_is_reply(tweet):
+    return tweet.in_reply_to_status_id is not None
+
+
 def check_mentions(api, since_id):
     logger.info("Retrieving mentions")
     new_since_id = since_id
     for tweet in tweepy.Cursor(api.mentions_timeline, since_id=since_id).items():
         new_since_id = max(tweet.id, new_since_id)
-        if tweet.in_reply_to_status_id is not None:
-            continue
 
-        logger.info(f"Answering to {tweet.user.name}")
+        photo_url = None
+        if tweet_has_photo(tweet):
+            photo_url = get_photo_url(tweet)
+        elif tweet_is_reply(tweet):
+            replied_tweet = api.get_status(tweet.in_reply_to_status_id)
+            if tweet_has_photo(replied_tweet):
+                photo_url = get_photo_url(replied_tweet)
 
-        if 'media' in tweet.entities:
-            media = tweet.entities['media'][0]
-            if media['type'] == 'photo':
-                image = load_pil_image(media['media_url_https'])
-                caption = predictor.get_captions(image)[0]
+        if photo_url is not None:
+            image = load_pil_image(photo_url)
+            caption = predictor.get_captions(image)[0]
 
-                try:
-                    api.update_status(
-                        status=caption,
-                        in_reply_to_status_id=tweet.id,
-                        auto_populate_reply_metadata=True
-                    )
-                except tweepy.TweepError as error:
-                    logging.error(f"Raised error: {error}")
-                    if error.api_code != 187:
-                        raise error
+            try:
+                api.update_status(
+                    status=caption,
+                    in_reply_to_status_id=tweet.id,
+                    auto_populate_reply_metadata=True
+                )
+            except tweepy.TweepError as error:
+                logging.error(f"Raised error: {error}")
+                if error.api_code != 187:
+                    raise error
     return new_since_id
 
 
