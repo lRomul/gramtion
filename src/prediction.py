@@ -16,7 +16,7 @@ import captioning.models
 
 
 def load_pil_image(path):
-    if path.startswith('http'):
+    if path.startswith("http"):
         path = requests.get(path, stream=True).raw
     else:
         path = path
@@ -36,7 +36,10 @@ def image_transform(image):
     if np.round(image_scale * im_size_max) > 1333:
         image_scale = float(1333) / float(im_size_max)
     image = cv2.resize(
-        image, None, None, fx=image_scale, fy=image_scale, interpolation=cv2.INTER_LINEAR
+        image, None, None,
+        fx=image_scale,
+        fy=image_scale,
+        interpolation=cv2.INTER_LINEAR,
     )
     img = torch.from_numpy(image).permute(2, 0, 1)
     return img, image_scale
