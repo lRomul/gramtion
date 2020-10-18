@@ -27,12 +27,41 @@ def tweet_has_photo(tweet):
     return False
 
 
-def get_photo_url(tweet):
-    return tweet.entities['media'][0]['media_url_https']
+def get_photo_urls(tweet):
+    photo_urls = []
+    for media in tweet.extended_entities['media']:
+        if media['type'] == 'photo':
+            photo_urls.append(media['media_url_https'])
+    return photo_urls
 
 
 def tweet_is_reply(tweet):
     return tweet.in_reply_to_status_id is not None
+
+
+def predict_and_post_captions(photo_urls, tweet_to_reply, mention_name):
+    text = []
+    if mention_name:
+        text.append(f"@{mention_name},")
+
+    for num, photo_url in enumerate(photo_urls):
+        image = load_pil_image(photo_url)
+        caption = predictor.get_captions(image)[0]
+        num = f" {num}" if len(photo_urls) > 1 else ""
+        text.append(f"The photo{num} may show: {caption.capitalize()}.")
+
+    text = "\n".join(text)
+    logger.info(f"Tweet to {tweet_to_reply.id}: {text}")
+    try:
+        api.update_status(
+            status=text,
+            in_reply_to_status_id=tweet_to_reply.id,
+            auto_populate_reply_metadata=True
+        )
+    except tweepy.TweepError as error:
+        logger.error(f"Raised error: {error}")
+        if error.api_code != 187:
+            raise error
 
 
 def check_mentions(api, since_id):
@@ -43,29 +72,18 @@ def check_mentions(api, since_id):
         if tweet.user.id == api.me().id:
             continue
 
-        username = tweet.user.screen_name
-        photo_url = None
+        mention_name = ""
+        photo_urls = []
         if tweet_has_photo(tweet):
-            photo_url = get_photo_url(tweet)
+            photo_urls = get_photo_urls(tweet)
         elif tweet_is_reply(tweet):
+            mention_name = tweet.user.screen_name
             tweet = api.get_status(tweet.in_reply_to_status_id)
             if tweet_has_photo(tweet):
-                photo_url = get_photo_url(tweet)
+                photo_urls = get_photo_urls(tweet)
 
-        if photo_url is not None:
-            image = load_pil_image(photo_url)
-            caption = predictor.get_captions(image)[0]
-
-            try:
-                api.update_status(
-                    status=f"@{username}, {caption}",
-                    in_reply_to_status_id=tweet.id,
-                    auto_populate_reply_metadata=True
-                )
-            except tweepy.TweepError as error:
-                logging.error(f"Raised error: {error}")
-                if error.api_code != 187:
-                    raise error
+        if photo_urls:
+            predict_and_post_captions(photo_urls, tweet, mention_name)
     return new_since_id
 
 
