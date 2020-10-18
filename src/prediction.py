@@ -36,7 +36,9 @@ def image_transform(image):
     if np.round(image_scale * im_size_max) > 1333:
         image_scale = float(1333) / float(im_size_max)
     image = cv2.resize(
-        image, None, None,
+        image,
+        None,
+        None,
         fx=image_scale,
         fy=image_scale,
         interpolation=cv2.INTER_LINEAR,
@@ -154,14 +156,20 @@ class CaptionPredictor:
 
 
 if __name__ == "__main__":
+    from src.settings import settings
+
     predictor = CaptionPredictor(
-        "/model_data/detectron_model.pth",
-        "/model_data/detectron_model.yaml",
-        "/model_data/model-best.pth",
-        "/model_data/infos_trans12-best.pkl",
+        settings.feature_checkpoint_path,
+        settings.feature_config_path,
+        settings.caption_checkpoint_path,
+        settings.caption_config_path,
         beam_size=5,
         sample_n=5,
         device="cpu",
     )
 
-    print(predictor.get_captions(load_pil_image("test.jpg")))
+    image = load_pil_image(
+        "https://user-images.githubusercontent.com/"
+        "11138870/96363040-6da16080-113a-11eb-83f7-3cdb65b62dbb.jpg"
+    )
+    print(predictor.get_captions(image))

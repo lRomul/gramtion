@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     consumer_secret: str
     access_token: str
     access_token_secret: str
+    feature_checkpoint_path: str = "/model_data/detectron_model.pth"
+    feature_config_path: str = "/model_data/detectron_model.yaml"
+    caption_checkpoint_path: str = "/model_data/model-best.pth"
+    caption_config_path: str = "/model_data/infos_trans12-best.pkl"
 
     class Config:
         env_file = ".env"
