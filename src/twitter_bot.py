@@ -38,6 +38,7 @@ def tweet_text_to(api, tweet, text):
             in_reply_to_status_id=tweet.id,
             auto_populate_reply_metadata=True,
         )
+        logger.info(f"New tweet id '{tweet.id}'")
     except tweepy.TweepError as error:
         logger.error(f"Raised Tweep error: {error}")
         raise error
@@ -45,21 +46,31 @@ def tweet_text_to(api, tweet, text):
 
 
 def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply, mention_name):
-    text = []
+    text_lst = []
     if mention_name:
-        text.append(f"@{mention_name},")
+        text_lst.append(f"@{mention_name},")
         logger.info(f"Add mention of user '{mention_name}'")
 
+    # Generate caption for each photo
     for num, photo_url in enumerate(photo_urls):
         image = load_pil_image(photo_url)
         caption = predictor.get_captions(image)[0]
         num = f" {num + 1}" if len(photo_urls) > 1 else ""
-        photo_caption_text = f"The photo{num} may show: {caption.capitalize()}."
-        text.append(photo_caption_text)
+        photo_caption_text = f"Photo{num} may show: {caption.capitalize()}."
+        text_lst.append(photo_caption_text[:settings.twitter_char_limit])
         logger.info(f"Tweet '{tweet_to_reply.id}' - {photo_caption_text}")
 
-    text = "\n".join(text)
-    tweet_text_to(api, tweet_to_reply, text)
+    text = ""
+    # Chunk large text into several tweets
+    for num, line in enumerate(text_lst):
+        if len(text) + len(line) >= settings.twitter_char_limit:
+            tweet_to_reply = tweet_text_to(api, tweet_to_reply, text)
+            text = ""
+        if num:
+            text += '\n'
+        text += line
+    if text:
+        tweet_text_to(api, tweet_to_reply, text)
 
 
 def process_tweet(api, predictor, tweet):
