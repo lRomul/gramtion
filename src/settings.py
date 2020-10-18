@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     caption_config_path: Path = "/model_data/infos_trans12-best.pkl"
     twitter_char_limit: int = 280
     device: str = "cuda"
+    state_path: str = "/workdir/state.json"
+    log_level: str = "INFO"
 
     @validator("device")
     def valid_device(cls, value):
