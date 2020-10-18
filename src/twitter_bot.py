@@ -47,7 +47,7 @@ def predict_and_post_captions(photo_urls, tweet_to_reply, mention_name):
     for num, photo_url in enumerate(photo_urls):
         image = load_pil_image(photo_url)
         caption = predictor.get_captions(image)[0]
-        num = f" {num}" if len(photo_urls) > 1 else ""
+        num = f" {num + 1}" if len(photo_urls) > 1 else ""
         text.append(f"The photo{num} may show: {caption.capitalize()}.")
 
     text = "\n".join(text)
