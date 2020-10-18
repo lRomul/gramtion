@@ -73,46 +73,65 @@ def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply, mentio
         tweet_text_to(api, tweet_to_reply, text)
 
 
-def process_tweet(api, predictor, tweet):
-    logger.info(f"Start processing tweet '{tweet.id}'")
-    if tweet.user.id == api.me().id:
-        logger.info(f"Skip tweet by me '{tweet.user.id}'")
-        return
+class ImageCaptioningProcessor:
+    def __init__(self, api, predictor, sleep=15.0):
+        self.api = api
+        self.predictor = predictor
+        self.sleep = sleep
+        self.me = api.me()
 
-    mention_name = ""
-    photo_urls = []
-    if tweet_has_photo(tweet):
-        photo_urls = get_photo_urls(tweet)
-        logger.info(f"Tweet '{tweet.id}' has photos: {photo_urls}")
-    elif tweet_is_reply(tweet):
-        mention_name = tweet.user.screen_name
-        tweet = api.get_status(tweet.in_reply_to_status_id)
+    def process_tweet(self, tweet):
+        logger.info(f"Start processing tweet '{tweet.id}'")
+        if tweet.user.id == self.me.id:
+            logger.info(f"Skip tweet by me '{tweet.user.id}'")
+            return
+
+        mention_name = ""
+        photo_urls = []
         if tweet_has_photo(tweet):
             photo_urls = get_photo_urls(tweet)
-            logger.info(f"Replied tweet '{tweet.id}' has photos: {photo_urls}")
+            logger.info(f"Tweet '{tweet.id}' has photos: {photo_urls}")
+        elif tweet_is_reply(tweet):
+            mention_name = tweet.user.screen_name
+            tweet = self.api.get_status(tweet.in_reply_to_status_id)
+            if tweet_has_photo(tweet):
+                photo_urls = get_photo_urls(tweet)
+                logger.info(f"Replied tweet '{tweet.id}' has photos: {photo_urls}")
 
-    if photo_urls:
-        predict_and_post_captions(api, predictor, photo_urls, tweet, mention_name)
-    logger.info(f"Finish processing tweet '{tweet.id}'")
+        if photo_urls:
+            predict_and_post_captions(
+                self.api, self.predictor, photo_urls, tweet, mention_name
+            )
+        logger.info(f"Finish processing tweet '{tweet.id}'")
 
+    def check_mentions(self, since_id):
+        logger.info(f"Retrieving mentions since_id '{since_id}'")
+        new_since_id = since_id
+        for tweet in tweepy.Cursor(
+            self.api.mentions_timeline, since_id=since_id
+        ).items():
+            new_since_id = max(tweet.id, new_since_id)
+            try:
+                self.process_tweet(tweet)
+            except BaseException as error:
+                logger.info(f"Error while processing tweet '{tweet.id}': {error}")
+        return new_since_id
 
-def check_mentions(api, predictor, since_id):
-    logger.info(f"Retrieving mentions since_id '{since_id}'")
-    new_since_id = since_id
-    for tweet in tweepy.Cursor(api.mentions_timeline, since_id=since_id).items():
-        new_since_id = max(tweet.id, new_since_id)
-        try:
-            process_tweet(api, predictor, tweet)
-        except BaseException as error:
-            logger.info(f"Error while processing tweet '{tweet.id}': {error}")
-    return new_since_id
+    def process(self, since_id=1):
+        logger.info(f"Starting with since_id: '{since_id}'")
+        while True:
+            since_id = self.check_mentions(since_id)
+            logger.info("Waiting...")
+            time.sleep(self.sleep)
 
 
 if __name__ == "__main__":
     auth = tweepy.OAuthHandler(settings.consumer_key, settings.consumer_secret)
     auth.set_access_token(settings.access_token, settings.access_token_secret)
-    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-    api.verify_credentials()
+    twitter_api = tweepy.API(
+        auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True
+    )
+    twitter_api.verify_credentials()
     logger.info("Credentials verified")
 
     predictor_params = {
@@ -124,12 +143,8 @@ if __name__ == "__main__":
         "sample_n": 1,
         "device": settings.device,
     }
-    predictor = CaptionPredictor(**predictor_params)
+    caption_predictor = CaptionPredictor(**predictor_params)
     logger.info(f"Predictor loaded with params: {predictor_params}")
 
-    since_id = 1
-    logger.info(f"Starting with since_id: '{since_id}'")
-    while True:
-        since_id = check_mentions(api, predictor, since_id)
-        logger.info("Waiting...")
-        time.sleep(15)
+    processor = ImageCaptioningProcessor(twitter_api, caption_predictor)
+    processor.process(since_id=1)
