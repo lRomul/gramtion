@@ -165,7 +165,7 @@ if __name__ == "__main__":
         settings.caption_config_path,
         beam_size=5,
         sample_n=5,
-        device="cpu",
+        device=settings.device,
     )
 
     image = load_pil_image(

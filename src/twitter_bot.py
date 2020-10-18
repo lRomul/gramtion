@@ -57,7 +57,7 @@ def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply, mentio
         caption = predictor.get_captions(image)[0]
         num = f" {num + 1}" if len(photo_urls) > 1 else ""
         photo_caption_text = f"Photo{num} may show: {caption.capitalize()}."
-        text_lst.append(photo_caption_text[:settings.twitter_char_limit])
+        text_lst.append(photo_caption_text[: settings.twitter_char_limit])
         logger.info(f"Tweet '{tweet_to_reply.id}' - {photo_caption_text}")
 
     text = ""
@@ -67,7 +67,7 @@ def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply, mentio
             tweet_to_reply = tweet_text_to(api, tweet_to_reply, text)
             text = ""
         if num:
-            text += '\n'
+            text += "\n"
         text += line
     if text:
         tweet_text_to(api, tweet_to_reply, text)
@@ -115,16 +115,17 @@ if __name__ == "__main__":
     api.verify_credentials()
     logger.info("Credentials verified")
 
-    predictor = CaptionPredictor(
-        settings.feature_checkpoint_path,
-        settings.feature_config_path,
-        settings.caption_checkpoint_path,
-        settings.caption_config_path,
-        beam_size=5,
-        sample_n=1,
-        device="cuda",
-    )
-    logger.info("Predictor loaded")
+    predictor_params = {
+        "feature_checkpoint_path": settings.feature_checkpoint_path,
+        "feature_config_path": settings.feature_config_path,
+        "caption_checkpoint_path": settings.caption_checkpoint_path,
+        "caption_config_path": settings.caption_config_path,
+        "beam_size": 5,
+        "sample_n": 1,
+        "device": settings.device,
+    }
+    predictor = CaptionPredictor(**predictor_params)
+    logger.info(f"Predictor loaded with params: {predictor_params}")
 
     since_id = 1
     logger.info(f"Starting with since_id: '{since_id}'")
