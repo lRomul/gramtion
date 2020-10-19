@@ -84,13 +84,11 @@ class ImageCaptioningProcessor:
     def init_since_id(self, since_id: str) -> int:
         if since_id in {"old", "new"}:
             if since_id == "old":
-                # Get id of last tweet by bot
+                logger.info(f"Get id of last tweet by bot")
                 tweets = self.api.user_timeline(id=self.me.id, count=1)
-                logger.info(f"Last tweet by bot '{tweets.id}'")
             else:
-                # Get id of last tweet with bot mention
+                logger.info(f"Get id of last tweet with bot mention")
                 tweets = self.api.mentions_timeline(count=1)
-                logger.info(f"Last tweet with bot mention '{tweets.id}'")
             since_id = 1
             if tweets:
                 since_id = tweets[0].id
