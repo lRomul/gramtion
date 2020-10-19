@@ -132,9 +132,11 @@ class ImageCaptioningProcessor:
     def process(self):
         logger.info(f"Starting with since_id: '{self.since_id}'")
         while True:
+            start = time.time()
             self.process_mentions()
-            logger.info(f"Waiting {self.sleep} seconds")
-            time.sleep(self.sleep)
+            sleep = max(0, self.sleep - time.time() + start)
+            logger.info(f"Waiting {sleep} seconds")
+            time.sleep(sleep)
 
 
 if __name__ == "__main__":
