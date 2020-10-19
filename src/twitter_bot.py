@@ -83,13 +83,15 @@ class ImageCaptioningProcessor:
 
     def init_since_id(self, since_id: str) -> int:
         if since_id in {"old", "new"}:
-            since_id = 1
             if since_id == "old":
                 # Get id of last tweet by bot
                 tweets = self.api.user_timeline(id=self.me.id, count=1)
+                logger.info(f"Last tweet by bot '{tweets.id}'")
             else:
                 # Get id of last tweet with bot mention
                 tweets = self.api.mentions_timeline(count=1)
+                logger.info(f"Last tweet with bot mention '{tweets.id}'")
+            since_id = 1
             if tweets:
                 since_id = tweets[0].id
         return int(since_id)
@@ -134,7 +136,7 @@ class ImageCaptioningProcessor:
         while True:
             start = time.time()
             self.process_mentions()
-            sleep = max(0, self.sleep - time.time() + start)
+            sleep = max(0., self.sleep - time.time() + start)
             logger.info(f"Waiting {sleep} seconds")
             time.sleep(sleep)
 
