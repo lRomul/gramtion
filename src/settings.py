@@ -14,16 +14,20 @@ class Settings(BaseSettings):
     caption_config_path: Path = "/model_data/infos_trans12-best.pkl"
     twitter_char_limit: int = 280
     device: str = "cuda"
-    state_path: str = "/workdir/state.json"
+    since_id: str = "old"
     log_level: str = "INFO"
 
     @validator("device")
     def valid_device(cls, value):
-        try:
-            torch.device(value)
-        except RuntimeError:
-            raise ValueError(f"Device must be cpu or cuda")
+        torch.device(value)
         return value
+
+    @validator("since_id")
+    def valid_since_id(cls, value):
+        if value in {"old", "new"} or value.isnumeric():
+            return value
+        else:
+            raise ValueError(f"Since id must be 'old'/'new' or numeric")
 
     class Config:
         env_file = ".env"

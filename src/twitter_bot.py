@@ -3,7 +3,6 @@ import tweepy
 import logging
 
 from src.prediction import CaptionPredictor, load_pil_image
-from src.state import init_state, save_state
 from src.utils import setup_logging
 from src.settings import settings
 
@@ -75,13 +74,25 @@ def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply, mentio
 
 
 class ImageCaptioningProcessor:
-    def __init__(self, api, predictor, state_path="", sleep=15.0):
+    def __init__(self, api, predictor, since_id="old", sleep=15.0):
         self.api = api
         self.predictor = predictor
-        self.state_path = state_path
         self.sleep = sleep
         self.me = api.me()
-        self.state = init_state(api, state_path)
+        self.since_id = self.init_since_id(since_id)
+
+    def init_since_id(self, since_id: str) -> int:
+        if since_id in {"old", "new"}:
+            since_id = 1
+            if since_id == "old":
+                # Get id of last tweet by bot
+                tweets = self.api.user_timeline(id=self.me.id, count=1)
+            else:
+                # Get id of last tweet with bot mention
+                tweets = self.api.mentions_timeline(count=1)
+            if tweets:
+                since_id = tweets[0].id
+        return int(since_id)
 
     def process_tweet(self, tweet):
         logger.info(f"Start processing tweet '{tweet.id}'")
@@ -108,19 +119,18 @@ class ImageCaptioningProcessor:
         logger.info(f"Finish processing tweet '{tweet.id}'")
 
     def process_mentions(self):
-        logger.info(f"Retrieving mentions since_id '{self.state.since_id}'")
+        logger.info(f"Retrieving mentions since_id '{self.since_id}'")
         for tweet in tweepy.Cursor(
-            self.api.mentions_timeline, since_id=self.state.since_id
+            self.api.mentions_timeline, since_id=self.since_id
         ).items():
             try:
-                self.state.since_id = max(tweet.id, self.state.since_id)
                 self.process_tweet(tweet)
-                save_state(self.state, self.state_path)
+                self.since_id = max(tweet.id, self.since_id)
             except BaseException as error:
                 logger.info(f"Error while processing tweet '{tweet.id}': {error}")
 
     def process(self):
-        logger.info(f"Starting with since_id: '{self.state.since_id}'")
+        logger.info(f"Starting with since_id: '{self.since_id}'")
         while True:
             self.process_mentions()
             logger.info(f"Waiting {self.sleep} seconds")
@@ -151,6 +161,6 @@ if __name__ == "__main__":
     logger.info(f"Predictor loaded with params: {predictor_params}")
 
     processor = ImageCaptioningProcessor(
-        twitter_api, caption_predictor, state_path=settings.state_path
+        twitter_api, caption_predictor, since_id=settings.since_id
     )
     processor.process()
