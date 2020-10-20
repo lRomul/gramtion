@@ -45,11 +45,8 @@ def tweet_text_to(api, tweet, text):
     return tweet
 
 
-def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply, mention_name):
+def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply):
     text_lst = []
-    if mention_name:
-        text_lst.append(f"@{mention_name},")
-        logger.info(f"Add mention of user '{mention_name}'")
 
     # Generate caption for each photo
     for num, photo_url in enumerate(photo_urls):
@@ -96,25 +93,20 @@ class ImageCaptioningProcessor:
 
     def process_tweet(self, tweet):
         logger.info(f"Start processing tweet '{tweet.id}'")
-        if tweet.user.id == self.me.id:
-            logger.info(f"Skip tweet by me '{tweet.user.id}'")
-            return
 
-        mention_name = ""
         photo_urls = []
         if tweet_has_photo(tweet):
             photo_urls = get_photo_urls(tweet)
             logger.info(f"Tweet '{tweet.id}' has photos: {photo_urls}")
         elif tweet_is_reply(tweet):
-            mention_name = tweet.user.screen_name
-            tweet = self.api.get_status(tweet.in_reply_to_status_id)
-            if tweet_has_photo(tweet):
-                photo_urls = get_photo_urls(tweet)
-                logger.info(f"Replied tweet '{tweet.id}' has photos: {photo_urls}")
+            replied_tweet = self.api.get_status(tweet.in_reply_to_status_id)
+            if tweet_has_photo(replied_tweet):
+                photo_urls = get_photo_urls(replied_tweet)
+                logger.info(f"Replied tweet '{replied_tweet.id}' has photos: {photo_urls}")
 
         if photo_urls:
             predict_and_post_captions(
-                self.api, self.predictor, photo_urls, tweet, mention_name
+                self.api, self.predictor, photo_urls, tweet
             )
         logger.info(f"Finish processing tweet '{tweet.id}'")
 

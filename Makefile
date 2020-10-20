@@ -10,7 +10,7 @@ else
 endif
 
 .PHONY: all
-all: stop build run
+all: stop build run logs
 
 .PHONY: build
 build:
@@ -23,6 +23,16 @@ stop:
 
 .PHONY: run
 run:
+	docker run -d --restart=always \
+		$(OPTIONS) \
+		$(GPUS_OPTION) \
+		-v $(shell pwd)/.env:/workdir/.env \
+		--name=$(NAME) \
+		$(NAME) \
+		python src/twitter_bot.py
+
+.PHONY: run-dev
+run-dev:
 	docker run --rm -dit \
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
