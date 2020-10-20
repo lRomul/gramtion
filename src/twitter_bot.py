@@ -99,21 +99,23 @@ class ImageCaptioningProcessor:
             photo_urls = get_photo_urls(tweet)
             logger.info(f"Tweet '{tweet.id}' has photos: {photo_urls}")
         elif tweet_is_reply(tweet):
-            replied_tweet = self.api.get_status(tweet.in_reply_to_status_id)
+            replied_tweet = self.api.get_status(
+                tweet.in_reply_to_status_id, tweet_mode="extended"
+            )
             if tweet_has_photo(replied_tweet):
                 photo_urls = get_photo_urls(replied_tweet)
-                logger.info(f"Replied tweet '{replied_tweet.id}' has photos: {photo_urls}")
+                logger.info(
+                    f"Replied tweet '{replied_tweet.id}' has photos: {photo_urls}"
+                )
 
         if photo_urls:
-            predict_and_post_captions(
-                self.api, self.predictor, photo_urls, tweet
-            )
+            predict_and_post_captions(self.api, self.predictor, photo_urls, tweet)
         logger.info(f"Finish processing tweet '{tweet.id}'")
 
     def process_mentions(self):
         logger.info(f"Retrieving mentions since_id '{self.since_id}'")
         for tweet in tweepy.Cursor(
-            self.api.mentions_timeline, since_id=self.since_id
+            self.api.mentions_timeline, since_id=self.since_id, tweet_mode="extended"
         ).items():
             try:
                 self.process_tweet(tweet)
@@ -126,7 +128,7 @@ class ImageCaptioningProcessor:
         while True:
             start = time.time()
             self.process_mentions()
-            sleep = max(0., self.sleep - time.time() + start)
+            sleep = max(0.0, self.sleep - time.time() + start)
             logger.info(f"Waiting {sleep} seconds")
             time.sleep(sleep)
 
