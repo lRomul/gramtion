@@ -70,8 +70,8 @@ def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply):
         tweet_text_to(api, tweet_to_reply, text)
 
 
-class ImageCaptioningProcessor:
-    def __init__(self, api, predictor, since_id="old", sleep=15.0):
+class TwitterMentionProcessor:
+    def __init__(self, api, predictor, since_id="old", sleep=12.0):
         self.api = api
         self.predictor = predictor
         self.sleep = sleep
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     caption_predictor = CaptionPredictor(**predictor_params)
     logger.info(f"Predictor loaded with params: {predictor_params}")
 
-    processor = ImageCaptioningProcessor(
-        twitter_api, caption_predictor, since_id=settings.since_id
+    processor = TwitterMentionProcessor(
+        twitter_api, caption_predictor, since_id=settings.since_id, sleep=12.0
     )
     processor.process()
