@@ -3,6 +3,7 @@ import tweepy
 import logging
 
 from src.prediction import CaptionPredictor, load_pil_image
+from src.text_processing import CaptionProcessor
 from src.utils import setup_logging
 from src.settings import settings
 
@@ -45,37 +46,13 @@ def tweet_text_to(api, tweet, text):
     return tweet
 
 
-def predict_and_post_captions(api, predictor, photo_urls, tweet_to_reply):
-    text_lst = []
-
-    # Generate caption for each photo
-    for num, photo_url in enumerate(photo_urls):
-        image = load_pil_image(photo_url)
-        caption = predictor.get_captions(image)[0]
-        num = f" {num + 1}" if len(photo_urls) > 1 else ""
-        photo_caption_text = f"Photo{num} may show: {caption.capitalize()}."
-        text_lst.append(photo_caption_text[: settings.twitter_char_limit])
-        logger.info(f"Tweet '{tweet_to_reply.id}' - {photo_caption_text}")
-
-    text = ""
-    # Chunk large text into several tweets
-    for num, line in enumerate(text_lst):
-        if len(text) + len(line) >= settings.twitter_char_limit:
-            tweet_to_reply = tweet_text_to(api, tweet_to_reply, text)
-            text = ""
-        if num:
-            text += "\n"
-        text += line
-    if text:
-        tweet_text_to(api, tweet_to_reply, text)
-
-
 class TwitterMentionProcessor:
     def __init__(self, api, predictor, since_id="old", sleep=14.0):
         self.api = api
         self.predictor = predictor
         self.sleep = sleep
         self.me = api.me()
+        self.caption_processor = CaptionProcessor()
         self.since_id = self.init_since_id(since_id)
 
     def init_since_id(self, since_id: str) -> int:
@@ -90,6 +67,29 @@ class TwitterMentionProcessor:
             if tweets:
                 since_id = tweets[0].id
         return int(since_id)
+
+    def predict_and_post_captions(self, photo_urls, tweet_to_reply):
+        captions = []
+
+        # Generate caption for each photo
+        for photo_url in photo_urls:
+            image = load_pil_image(photo_url)
+            caption = self.predictor.get_captions(image)
+            captions.append(caption[0])
+
+        captions = self.caption_processor.process_captions(captions)
+
+        text = ""
+        # Chunk large text into several tweets
+        for num, caption in enumerate(captions):
+            if len(text) + len(caption) >= settings.twitter_char_limit:
+                tweet_to_reply = tweet_text_to(self.api, tweet_to_reply, text)
+                text = ""
+            if num:
+                text += "\n"
+            text += caption
+        if text:
+            tweet_text_to(self.api, tweet_to_reply, text)
 
     def process_tweet(self, tweet):
         logger.info(f"Start processing tweet '{tweet.id}'")
@@ -109,7 +109,7 @@ class TwitterMentionProcessor:
                 )
 
         if photo_urls:
-            predict_and_post_captions(self.api, self.predictor, photo_urls, tweet)
+            self.predict_and_post_captions(photo_urls, tweet)
         logger.info(f"Finish processing tweet '{tweet.id}'")
 
     def process_mentions(self):

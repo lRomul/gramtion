@@ -51,4 +51,4 @@ logs:
 
 .PHONY: exec
 exec:
-	docker exec -it $(NAME) $(COMMAND)
+	docker exec -it $(OPTIONS) $(NAME) $(COMMAND)
