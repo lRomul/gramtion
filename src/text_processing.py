@@ -16,6 +16,7 @@ class CaptionProcessor:
         caption = caption.lower()
         for key, value in self.replace_dict.items():
             caption = re.sub(r"\b{}\b".format(key), value, caption)
+        caption = caption.capitalize()
         caption = f"Photo{num_text} may show: {caption}."
         caption = caption[: settings.twitter_char_limit]
         return caption
