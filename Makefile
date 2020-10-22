@@ -26,10 +26,9 @@ run:
 	docker run -d --restart=always \
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
-		-v $(shell pwd)/.env:/workdir/.env \
+		--env-file .env \
 		--name=$(NAME) \
-		$(NAME) \
-		python src/twitter_bot.py
+		$(NAME)
 
 .PHONY: run-dev
 run-dev:
