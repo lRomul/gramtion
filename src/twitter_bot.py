@@ -118,10 +118,10 @@ class TwitterMentionProcessor:
             self.api.mentions_timeline, since_id=self.since_id, tweet_mode="extended"
         ).items():
             try:
-                self.process_tweet(tweet)
                 self.since_id = max(tweet.id, self.since_id)
+                self.process_tweet(tweet)
             except BaseException as error:
-                logger.info(f"Error while processing tweet '{tweet.id}': {error}")
+                logger.error(f"Error while processing tweet '{tweet.id}': {error}")
 
     def process(self):
         logger.info(f"Starting with since_id: '{self.since_id}'")
