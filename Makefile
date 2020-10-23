@@ -35,6 +35,7 @@ run-dev:
 	docker run --rm -dit \
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
+		--env-file .env \
 		--name=$(NAME) \
 		$(NAME) \
 		$(COMMAND)

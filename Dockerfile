@@ -8,8 +8,8 @@ RUN pip3 install --no-cache-dir \
 RUN cd / && git clone -b master --single-branch https://gitlab.com/vedanuj/vqa-maskrcnn-benchmark.git &&\
     cd vqa-maskrcnn-benchmark &&\
     git checkout 4c168a637f45dc69efed384c00a7f916f57b25b8 &&\
-    python3 setup.py build &&\
-    python3 setup.py develop
+    sed -i -e 's/torch.cuda.is_available()/True/g' setup.py &&\
+    TORCH_CUDA_ARCH_LIST="3.7+PTX;5.0;6.0;6.1;7.0;7.5" python3 setup.py build develop
 ENV PYTHONPATH "${PYTHONPATH}:/vqa-maskrcnn-benchmark"
 
 RUN mkdir /model_data && cd /model_data &&\
