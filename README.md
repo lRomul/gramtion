@@ -20,7 +20,7 @@ Twitter API v1.1 has not the ability to create polls, but it will be added to AP
 
 Tweet photo with mention [@GramtionBot](https://twitter.com/GramtionBot) or reply with mention to a tweet with a photo and the bot will send you an auto-generated image description.
 
-![example 1](https://raw.githubusercontent.com/lRomul/gramtion/master/pics/example1.jpeg) ![example 2](https://raw.githubusercontent.com/lRomul/gramtion/master/pics/example2.jpeg)
+![example 1](pics/example1.jpeg) ![example 2](pics/example2.jpeg)
 
 Links to [example 1](https://twitter.com/GramtionBot/status/1318674709874118656) and [example 2](https://twitter.com/snoWhite_tan/status/963953292383580165) tweets.
 
