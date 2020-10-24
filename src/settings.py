@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     caption_checkpoint_path: Path = "/model_data/model-best.pth"
     caption_config_path: Path = "/model_data/infos_trans12-best.pkl"
     twitter_char_limit: int = 280
-    device: str = "cuda"
+    device: str = "cpu"
     since_id: str = "old"
     log_level: str = "INFO"
 

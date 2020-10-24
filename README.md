@@ -2,13 +2,13 @@
   <a href="https://github.com/lRomul/gramtion"><img src="https://raw.githubusercontent.com/lRomul/gramtion/master/pics/gramtion.jpeg" alt="Title GRAMTION on the background of a black and white photo of clouds in the sky"></a>
 </p>
 <p align="center">
-    <em>Twitter bot for generating photo descriptions (alt text)</em>
+    <em>Twitter bot for generating photo descriptions</em>
 </p>
 
 This repo contains the source code of the Twitter [@GramtionBot](https://twitter.com/GramtionBot) for generating photo descriptions.  
 Use cases and intends: 
 * Help visually impaired Twitter users. 
-Good image descriptions will help them understand what is happening in an image. 
+Good image descriptions (alt text) will help them understand what is happening in an image. 
 Instagram and Facebook use deep learning for image captioning. 
 Twitter users can only add custom alt text descriptions themselves. 
 Automation of alt text generation will help Twitter be more accessible. 
@@ -24,7 +24,14 @@ Tweet photo with mention [@GramtionBot](https://twitter.com/GramtionBot) or repl
 
 Links to [example 1](https://twitter.com/GramtionBot/status/1318674709874118656) and [example 2](https://twitter.com/snoWhite_tan/status/963953292383580165) tweets.
 
+## Current issues 
+
+* The model can only handle photographs, for other types of images prediction are quite random.
+* Not sure if the current bot interface is comfortable for visually impaired users.
+* Some results may reflect inherent gender and racial biases of open datasets.
+
 ## Dependencies
+
 Gramtion is mostly made from ready parts:
 * Model taken from [self-critical.pytorch](https://github.com/ruotianluo/self-critical.pytorch)
 * Bot written with [Tweepy](https://github.com/tweepy/tweepy)
@@ -32,7 +39,7 @@ Gramtion is mostly made from ready parts:
 
 ## Run own bot
 
-To run your instance of the bot you need to install [Docker](https://www.docker.com/) and create [Twitter API auth credentials](https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials).  
+To run an instance of the bot you need to install [Docker](https://www.docker.com/) and create [Twitter API auth credentials](https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials).  
 If you have a Twitter developer account, but don't want to use it as a bot username, you can authenticate a new user that’s not has a developer account with [twurl](https://github.com/twitter/twurl).
 
 * Create .env file with credentials. 
@@ -47,16 +54,16 @@ If you have a Twitter developer account, but don't want to use it as a bot usern
 * Run Docker container with running the bot  
 
     ```bash
-    docker run -d --restart=always --gpus=all --env-file .env --name=gramtion ghcr.io/lromul/gramtion:0.0.2
+    docker run -d --restart=always --env-file .env --name=gramtion ghcr.io/lromul/gramtion:0.0.2
     ```
 
-* Open bot logs 
+* Open logs 
 
     ```bash
     docker logs -f gramtion
     ```
 
-* Stop bot
+* Stop container
 
     ```bash
     docker stop gramtion
