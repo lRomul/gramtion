@@ -30,7 +30,7 @@ Tweet photo with mention [@GramtionBot](https://twitter.com/GramtionBot) or repl
 
 ![example 1](pics/example1.jpeg) ![example 2](pics/example2.jpeg)
 
-Links to [example 1](https://twitter.com/GramtionBot/status/1318674709874118656) and [example 2](https://twitter.com/snoWhite_tan/status/963953292383580165) tweets.
+Links to [example 1](https://twitter.com/GramtionBot/status/1320423819794960384) and [example 2](https://twitter.com/snoWhite_tan/status/963953292383580165) tweets.
 
 ## Dependencies
 
