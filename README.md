@@ -5,6 +5,14 @@
     <em>Twitter bot for generating photo descriptions</em>
 </p>
 
+---
+
+**Twitter**: <a href="https://twitter.com/GramtionBot" target="_blank">https://twitter.com/GramtionBot</a>
+
+**Source Code**: <a href="https://github.com/lRomul/gramtion" target="_blank">https://github.com/lRomul/gramtion</a>
+
+---
+
 This repo contains the source code of the Twitter [@GramtionBot](https://twitter.com/GramtionBot) for generating photo descriptions.  
 Use cases and intends: 
 * Help visually impaired Twitter users. 
@@ -24,23 +32,23 @@ Tweet photo with mention [@GramtionBot](https://twitter.com/GramtionBot) or repl
 
 Links to [example 1](https://twitter.com/GramtionBot/status/1318674709874118656) and [example 2](https://twitter.com/snoWhite_tan/status/963953292383580165) tweets.
 
+## Dependencies
+
+Gramtion is mostly made from ready parts:
+* Image captioning model taken from [self-critical.pytorch](https://github.com/ruotianluo/self-critical.pytorch)
+* Bot written with [Tweepy](https://github.com/tweepy/tweepy)
+* Configuration settings implemented with [pydantic](https://github.com/samuelcolvin/pydantic/).
+
 ## Current issues 
 
 * The model can only handle photographs, for other types of images prediction are quite random.
 * Not sure if the current bot interface is comfortable for visually impaired users.
 * Some results may reflect inherent gender and racial biases of open datasets.
 
-## Dependencies
-
-Gramtion is mostly made from ready parts:
-* Model taken from [self-critical.pytorch](https://github.com/ruotianluo/self-critical.pytorch)
-* Bot written with [Tweepy](https://github.com/tweepy/tweepy)
-* Configuration settings implemented with [pydantic](https://github.com/samuelcolvin/pydantic/).
-
 ## Run own bot
 
 To run an instance of the bot you need to install [Docker](https://www.docker.com/) and create [Twitter API auth credentials](https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials).  
-If you have a Twitter developer account, but don't want to use it as a bot username, you can authenticate a new user that’s not has a developer account with [twurl](https://github.com/twitter/twurl).
+If you have a Twitter developer account, but don't want to use it as a bot account, you can authenticate a new user that’s not has a developer account with [twurl](https://github.com/twitter/twurl).
 
 * Create .env file with credentials. 
 
