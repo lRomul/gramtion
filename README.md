@@ -20,9 +20,9 @@ Good image descriptions (alt text) will help them understand what is happening i
 Instagram and Facebook use deep learning for image captioning. 
 Twitter users can only add custom alt text descriptions themselves. 
 Automation of alt text generation will help Twitter be more accessible. 
-* Collect dataset for image captioning (if it's legal, I don't know now). 
+* Collect dataset for image captioning (legal issues for this use case are yet to be discussed). 
 Annotations can be done by creating polls about prediction quality and getting corrected descriptions from users. 
-Twitter API v1.1 has not the ability to create polls, but it will be added to API v2. 
+Twitter API v1.1 has not the ability to create polls, but it will be added in API v2. 
 
 ## How to use
 
@@ -34,17 +34,17 @@ Links to [example 1](https://twitter.com/GramtionBot/status/1318674709874118656)
 
 ## Dependencies
 
-Gramtion is mostly made from ready parts:
+Gramtion is mainly built from ready-to-use third party libraries:
 * Image captioning model taken from [self-critical.pytorch](https://github.com/ruotianluo/self-critical.pytorch)
 * Bot written with [Tweepy](https://github.com/tweepy/tweepy)
 * Configuration settings implemented with [pydantic](https://github.com/samuelcolvin/pydantic/).
 
 ## Current issues 
 
-* The model can only handle photographs, for other types of images prediction are quite random.
-* Not sure if the current bot interface is comfortable for visually impaired users.
-* Some descriptions can be confusing. Waiting for Twitter API v2, which will add the ability to create polls to rate the descriptions.
+* The model can only handle photos, for other types of images the predictions are quite random.
+* Some descriptions may be confusing. Annotations may be created by using polls about prediction quality and getting corrected descriptions from users. Twitter API v1.1 has not the ability to create polls, but it will be added in API v2 endpoint `POST /2/tweets`.
 * Some results may reflect inherent gender and racial biases of open datasets.
+* Still waiting for feedback from visually impaired users to add some features or change the interface to make the bot more accessible.
 
 ## Run own bot
 
