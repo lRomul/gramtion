@@ -43,6 +43,7 @@ Gramtion is mostly made from ready parts:
 
 * The model can only handle photographs, for other types of images prediction are quite random.
 * Not sure if the current bot interface is comfortable for visually impaired users.
+* Some descriptions can be confusing. Waiting for Twitter API v2, which will add the ability to create polls to rate the descriptions.
 * Some results may reflect inherent gender and racial biases of open datasets.
 
 ## Run own bot
