@@ -35,9 +35,10 @@ Links to [example 1](https://twitter.com/GramtionBot/status/1318674709874118656)
 ## Dependencies
 
 Gramtion is mainly built from ready-to-use third party libraries:
-* Image captioning model taken from [self-critical.pytorch](https://github.com/ruotianluo/self-critical.pytorch)
-* Bot written with [Tweepy](https://github.com/tweepy/tweepy)
+* Image captioning model taken from [self-critical.pytorch](https://github.com/ruotianluo/self-critical.pytorch).
+* Bot written with [Tweepy](https://github.com/tweepy/tweepy).
 * Configuration settings implemented with [pydantic](https://github.com/samuelcolvin/pydantic/).
+* Docker image based on [Dokai](https://github.com/osai-ai/dokai).
 
 ## Current issues 
 
