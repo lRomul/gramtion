@@ -1,17 +1,18 @@
 import time
 import tweepy
 import logging
+from typing import List
 
 from src.prediction import CaptionPredictor, load_pil_image
 from src.text_processing import CaptionProcessor
-from src.utils import setup_logging
+from src.utils import Photo, Caption, setup_logging
 from src.settings import settings
 
 
 logger = logging.getLogger(__name__)
 
 
-def tweet_has_photo(tweet):
+def tweet_has_photo(tweet) -> bool:
     if "media" in tweet.entities:
         media = tweet.entities["media"][0]
         if media["type"] == "photo":
@@ -19,19 +20,19 @@ def tweet_has_photo(tweet):
     return False
 
 
-def get_photo_urls(tweet):
-    photo_urls = []
+def get_photos(tweet) -> List[Photo]:
+    photos_lst = []
     for media in tweet.extended_entities["media"]:
         if media["type"] == "photo":
-            photo_urls.append(media["media_url_https"])
-    return photo_urls
+            photos_lst.append(Photo(**media))
+    return photos_lst
 
 
-def tweet_is_reply(tweet):
+def tweet_is_reply(tweet) -> bool:
     return tweet.in_reply_to_status_id is not None
 
 
-def tweet_text_to(api, tweet, text):
+def tweet_text_to(api, tweet, text: str):
     logger.info(f"Tweet to {tweet.id}: {text}")
     try:
         tweet = api.update_status(
@@ -47,7 +48,13 @@ def tweet_text_to(api, tweet, text):
 
 
 class TwitterMentionProcessor:
-    def __init__(self, api, predictor, since_id="old", sleep=14.0):
+    def __init__(
+        self,
+        api,
+        predictor: CaptionPredictor,
+        since_id: str = "old",
+        sleep: float = 14.0,
+    ):
         self.api = api
         self.predictor = predictor
         self.sleep = sleep
@@ -68,14 +75,17 @@ class TwitterMentionProcessor:
                 since_id = tweets[0].id
         return int(since_id)
 
-    def predict_and_post_captions(self, photo_urls, tweet_to_reply):
+    def predict_and_post_captions(self, photos: List[Photo], tweet_to_reply):
         captions = []
 
         # Generate caption for each photo
-        for photo_url in photo_urls:
-            image = load_pil_image(photo_url)
-            caption = self.predictor.get_captions(image)
-            captions.append(caption[0])
+        for photo in photos:
+            if photo.ext_alt_text is None:
+                image = load_pil_image(photo.media_url_https)
+                caption = Caption(text=self.predictor.get_captions(image)[0])
+            else:
+                caption = Caption(text=photo.ext_alt_text, alt_text=True)
+            captions.append(caption)
 
         captions = self.caption_processor.process_captions(captions)
 
@@ -94,28 +104,31 @@ class TwitterMentionProcessor:
     def process_tweet(self, tweet):
         logger.info(f"Start processing tweet '{tweet.id}'")
 
-        photo_urls = []
+        photos = []
         if tweet_has_photo(tweet):
-            photo_urls = get_photo_urls(tweet)
-            logger.info(f"Tweet '{tweet.id}' has photos: {photo_urls}")
+            photos = get_photos(tweet)
+            logger.info(f"Tweet '{tweet.id}' has photos: {photos}")
         elif tweet_is_reply(tweet):
             replied_tweet = self.api.get_status(
-                tweet.in_reply_to_status_id, tweet_mode="extended"
+                tweet.in_reply_to_status_id,
+                tweet_mode="extended",
+                include_ext_alt_text=True,
             )
             if tweet_has_photo(replied_tweet):
-                photo_urls = get_photo_urls(replied_tweet)
-                logger.info(
-                    f"Replied tweet '{replied_tweet.id}' has photos: {photo_urls}"
-                )
+                photos = get_photos(replied_tweet)
+                logger.info(f"Replied tweet '{replied_tweet.id}' has photos: {photos}")
 
-        if photo_urls:
-            self.predict_and_post_captions(photo_urls, tweet)
+        if photos:
+            self.predict_and_post_captions(photos, tweet)
         logger.info(f"Finish processing tweet '{tweet.id}'")
 
     def process_mentions(self):
         logger.info(f"Retrieving mentions since_id '{self.since_id}'")
         for tweet in tweepy.Cursor(
-            self.api.mentions_timeline, since_id=self.since_id, tweet_mode="extended"
+            self.api.mentions_timeline,
+            since_id=self.since_id,
+            tweet_mode="extended",
+            include_ext_alt_text=True,
         ).items():
             try:
                 self.since_id = max(tweet.id, self.since_id)
