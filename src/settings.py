@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     device: str = "cpu"
     since_id: str = "old"
     log_level: str = "INFO"
+    google_application_credentials: str = '/workdir/google_key.json'
 
     @validator("device")
     def valid_device(cls, value):

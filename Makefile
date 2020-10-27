@@ -27,6 +27,7 @@ run:
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
 		--env-file .env \
+		-v $(shell pwd)/google_key.json:/workdir/google_key.json \
 		--name=$(NAME) \
 		$(NAME)
 
@@ -36,6 +37,7 @@ run-dev:
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
 		--env-file .env \
+		-v $(shell pwd)/google_key.json:/workdir/google_key.json \
 		--name=$(NAME) \
 		$(NAME) \
 		$(COMMAND)
