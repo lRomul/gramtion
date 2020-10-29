@@ -2,6 +2,7 @@ from typing import Optional, List
 from google.cloud import vision
 
 from src.pydantic_models import Label
+from src.utils import generate_repr
 
 
 class GoogleVisionPredictor:
@@ -27,6 +28,15 @@ class GoogleVisionPredictor:
             labels = labels[: self.max_number]
         return labels
 
+    def __repr__(self):
+        return generate_repr(
+            self,
+            [
+                "score_threshold",
+                "max_number",
+            ],
+        )
+
 
 if __name__ == "__main__":
     predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=5)
@@ -35,4 +45,5 @@ if __name__ == "__main__":
         "https://user-images.githubusercontent.com/"
         "11138870/96363040-6da16080-113a-11eb-83f7-3cdb65b62dbb.jpg"
     )
+    print(predictor)
     print(predictor.get_labels(image_url))

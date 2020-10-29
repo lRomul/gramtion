@@ -16,6 +16,7 @@ import captioning.utils.misc
 import captioning.models
 
 from src.pydantic_models import Caption
+from src.utils import generate_repr
 
 
 def load_pil_image(path):
@@ -122,6 +123,10 @@ class CaptionPredictor:
         sample_n=5,
         device="cpu",
     ):
+        self.feature_checkpoint_path = feature_checkpoint_path
+        self.feature_config_path = feature_config_path
+        self.caption_checkpoint_path = caption_checkpoint_path
+        self.caption_config_path = caption_config_path
         self.device = torch.device(device)
         self.beam_size = beam_size
         self.sample_n = sample_n
@@ -158,6 +163,20 @@ class CaptionPredictor:
         captions = [Caption(text=capt) for capt in captions]
         return captions
 
+    def __repr__(self):
+        return generate_repr(
+            self,
+            [
+                "feature_checkpoint_path",
+                "feature_config_path",
+                "caption_checkpoint_path",
+                "caption_config_path",
+                "beam_size",
+                "sample_n",
+                "device",
+            ],
+        )
+
 
 if __name__ == "__main__":
     from src.settings import settings
@@ -176,4 +195,5 @@ if __name__ == "__main__":
         "https://user-images.githubusercontent.com/"
         "11138870/96363040-6da16080-113a-11eb-83f7-3cdb65b62dbb.jpg"
     )
+    print(predictor)
     print(predictor.get_captions(image))

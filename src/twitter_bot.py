@@ -5,8 +5,9 @@ import logging
 from typing import List
 
 from src.image_captioning import CaptionPredictor, load_pil_image
-from src.text_processing import CaptionProcessor
-from src.pydantic_models import Photo, Caption
+from src.google_vision_api import GoogleVisionPredictor
+from src.prediction_processing import PredictionProcessor
+from src.pydantic_models import Photo, Caption, PhotoPrediction
 from src.utils import setup_logging
 from src.settings import settings
 
@@ -73,15 +74,17 @@ class TwitterMentionProcessor:
     def __init__(
         self,
         api,
-        predictor: CaptionPredictor,
+        caption_predictor: CaptionPredictor,
+        label_predictor: GoogleVisionPredictor,
         since_id: str = "old",
         sleep: float = 14.0,
     ):
         self.api = api
-        self.predictor = predictor
+        self.caption_predictor = caption_predictor
+        self.label_predictor = label_predictor
         self.sleep = sleep
         self.me = api.me()
-        self.caption_processor = CaptionProcessor()
+        self.caption_processor = PredictionProcessor()
         self.since_id = self.init_since_id(since_id)
         self._stopped = True
         self.init_signals()
@@ -100,18 +103,20 @@ class TwitterMentionProcessor:
         return int(since_id)
 
     def process_photos(self, photos: List[Photo]) -> List[str]:
-        captions = []
+        predictions = []
 
         # Generate caption for each photo
         for photo in photos:
             caption = photo.caption
             if caption is None:
                 image = load_pil_image(photo.url)
-                caption = self.predictor.get_captions(image)[0]
-            captions.append(caption)
+                caption = self.caption_predictor.get_captions(image)[0]
 
-        captions = self.caption_processor.process_captions(captions)
-        tweet_texts = split_text_to_tweets(captions)
+            labels = self.label_predictor.get_labels(photo.url)
+            predictions.append(PhotoPrediction(caption=caption, labels=labels))
+
+        messages = self.caption_processor.predictions_to_messages(predictions)
+        tweet_texts = split_text_to_tweets(messages)
         return tweet_texts
 
     def process_tweet(self, tweet, post=True):
@@ -199,9 +204,15 @@ if __name__ == "__main__":
         "device": settings.device,
     }
     caption_predictor = CaptionPredictor(**predictor_params)
-    logger.info(f"Predictor loaded with params: {predictor_params}")
+    logger.info(f"Caption predictor loaded: {caption_predictor}")
+    label_predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=5)
+    logger.info(f"Label predictor loaded: {label_predictor}")
 
     processor = TwitterMentionProcessor(
-        twitter_api, caption_predictor, since_id=settings.since_id, sleep=14.0
+        twitter_api,
+        caption_predictor,
+        label_predictor,
+        since_id=settings.since_id,
+        sleep=14.0,
     )
     processor.run_processing()

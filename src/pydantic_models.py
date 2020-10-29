@@ -18,6 +18,6 @@ class Label(BaseModel):
     score: float
 
 
-class Prediction(BaseModel):
+class PhotoPrediction(BaseModel):
     caption: Caption
     labels: List[Label]
