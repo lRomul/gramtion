@@ -63,7 +63,7 @@ def split_text_to_tweets(texts):
             tweet_texts.append(text)
             text = ""
         if num:
-            text += "\n"
+            text += "\n\n"
         text += caption
     if text:
         tweet_texts.append(text)

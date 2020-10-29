@@ -6,34 +6,41 @@ from src.settings import settings
 
 
 class PredictionProcessor:
-    def __init__(self, replace_dict: Optional[Dict[str, str]] = None):
-        if replace_dict is None:
-            replace_dict = {
+    def __init__(self, caption_replace_dict: Optional[Dict[str, str]] = None):
+        if caption_replace_dict is None:
+            caption_replace_dict = {
                 "unk": "unknown",
             }
-        self.replace_dict = replace_dict
+        self.caption_replace_dict = caption_replace_dict
 
     def process_prediction(
-        self, prediction: PhotoPrediction, num_text: str = ""
+        self, prediction: PhotoPrediction, photo_num: int = 0
     ) -> str:
         caption = prediction.caption
-        text = caption.text
+        message = f"Photo {photo_num}: \n"
+
+        caption_text = caption.text
         if not caption.alt_text:
-            text = caption.text.lower()
-            for key, value in self.replace_dict.items():
-                text = re.sub(r"\b{}\b".format(key), value, text)
-            text = text.capitalize() + "."
-            phrase = "may show"
+            caption_text = caption.text.lower()
+            for key, value in self.caption_replace_dict.items():
+                caption_text = re.sub(r"\b{}\b".format(key), value, caption_text)
+            caption_text = caption_text.capitalize() + "."
+            phrase = "May show"
         else:
-            phrase = "alt text"
-        text = f"{num_text} {phrase}: {text}"
-        text = text[: settings.twitter_char_limit]
-        return text
+            phrase = "Alt text"
+        caption_text = f"{phrase}: {caption_text}\n"
+        message += caption_text
+
+        labels_text = ", ".join([l.name for l in prediction.labels])
+        labels_text = f"Tags: {labels_text.capitalize()}."
+        message += labels_text
+
+        message = message[: settings.twitter_char_limit]
+        return message
 
     def predictions_to_messages(self, predictions: List[PhotoPrediction]) -> List[str]:
         messages = []
         for num, prediction in enumerate(predictions):
-            num_text = f"Photo {num + 1}" if len(predictions) > 1 else "Photo"
-            message = self.process_prediction(prediction, num_text=num_text)
+            message = self.process_prediction(prediction, photo_num=num + 1)
             messages.append(message)
         return messages
