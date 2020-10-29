@@ -39,6 +39,7 @@ Gramtion is mainly built from ready-to-use third party libraries:
 * Bot written with [Tweepy](https://github.com/tweepy/tweepy).
 * Configuration settings implemented with [pydantic](https://github.com/samuelcolvin/pydantic/).
 * Docker image based on [Dokai](https://github.com/osai-ai/dokai).
+* Image labels by Google [Vision Ai](https://cloud.google.com/vision).
 
 ## Current issues 
 
@@ -52,7 +53,7 @@ Gramtion is mainly built from ready-to-use third party libraries:
 To run an instance of the bot you need to install [Docker](https://www.docker.com/) and create [Twitter API auth credentials](https://realpython.com/twitter-bot-python-tweepy/#creating-twitter-api-authentication-credentials).  
 If you have a Twitter developer account, but don't want to use it as a bot account, you can authenticate a new user that’s not has a developer account with [twurl](https://github.com/twitter/twurl).
 
-* Create .env file with credentials. 
+* Create `.env` file with credentials. 
 
     ```
     CONSUMER_KEY={{ consumer_key }}
@@ -61,10 +62,16 @@ If you have a Twitter developer account, but don't want to use it as a bot accou
     ACCESS_TOKEN_SECRET={{ access_token_secret }}
     ```
 
+* Setup Google Vision AI and create account key ([link](https://cloud.google.com/vision/docs/setup)). Copy key as `google_key.json `.
+
 * Run Docker container with running the bot  
 
     ```bash
-    docker run -d --restart=always --env-file .env --name=gramtion ghcr.io/lromul/gramtion:0.0.2
+    docker run -d --restart=always \
+        --env-file .env \
+        -v google_key.json:/workdir/google_key.json \
+        --name=gramtion \
+        ghcr.io/lromul/gramtion:0.0.3
     ```
 
 * Open logs 
