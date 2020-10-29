@@ -1,5 +1,6 @@
 import time
 import tweepy
+import signal
 import logging
 from typing import List
 
@@ -77,6 +78,8 @@ class TwitterMentionProcessor:
         self.me = api.me()
         self.caption_processor = CaptionProcessor()
         self.since_id = self.init_since_id(since_id)
+        self._stopped = True
+        self.init_signals()
 
     def init_since_id(self, since_id: str) -> int:
         if since_id in {"old", "new"}:
@@ -149,14 +152,26 @@ class TwitterMentionProcessor:
             except BaseException as error:
                 logger.error(f"Error while processing tweet '{tweet.id}': {error}")
 
-    def process(self):
+    def run_processing(self):
         logger.info(f"Starting with since_id: '{self.since_id}'")
-        while True:
-            start = time.time()
-            self.process_mentions()
-            sleep = max(0.0, self.sleep - time.time() + start)
-            logger.info(f"Waiting {sleep} seconds")
+        self._stopped = False
+        prev_time = 0
+        while not self._stopped:
+            now_time = time.time()
+            if now_time - prev_time > self.sleep:
+                prev_time = now_time
+                self.process_mentions()
+            sleep = max(0.0, self.sleep - time.time() + prev_time)
+            sleep = min(1.0, sleep)
             time.sleep(sleep)
+
+    def init_signals(self):
+        signal.signal(signal.SIGINT, self.handle_signal)
+        signal.signal(signal.SIGTERM, self.handle_signal)
+
+    def handle_signal(self, signum, frame):
+        logger.info(f"Handle signal: {signal.Signals(signum).name}")
+        self._stopped = True
 
 
 if __name__ == "__main__":
@@ -185,4 +200,4 @@ if __name__ == "__main__":
     processor = TwitterMentionProcessor(
         twitter_api, caption_predictor, since_id=settings.since_id, sleep=14.0
     )
-    processor.process()
+    processor.run_processing()
