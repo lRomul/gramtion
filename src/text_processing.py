@@ -19,7 +19,7 @@ class CaptionProcessor:
             text = caption.text.lower()
             for key, value in self.replace_dict.items():
                 text = re.sub(r"\b{}\b".format(key), value, text)
-            text = text.capitalize() + '.'
+            text = text.capitalize() + "."
             phrase = "may show"
         else:
             phrase = "alt text"

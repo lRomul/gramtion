@@ -3,7 +3,7 @@ import tweepy
 import logging
 from typing import List
 
-from src.prediction import CaptionPredictor, load_pil_image
+from src.image_captioning import CaptionPredictor, load_pil_image
 from src.text_processing import CaptionProcessor
 from src.utils import Photo, Caption, setup_logging
 from src.settings import settings
@@ -47,6 +47,22 @@ def tweet_text_to(api, tweet, text: str):
     return tweet
 
 
+def split_text_to_tweets(texts):
+    tweet_texts = []
+    text = ""
+    # Chunk large text into several tweets
+    for num, caption in enumerate(texts):
+        if len(text) + len(caption) >= settings.twitter_char_limit:
+            tweet_texts.append(text)
+            text = ""
+        if num:
+            text += "\n"
+        text += caption
+    if text:
+        tweet_texts.append(text)
+    return tweet_texts
+
+
 class TwitterMentionProcessor:
     def __init__(
         self,
@@ -75,7 +91,7 @@ class TwitterMentionProcessor:
                 since_id = tweets[0].id
         return int(since_id)
 
-    def predict_and_post_captions(self, photos: List[Photo], tweet_to_reply):
+    def process_photos(self, photos: List[Photo]) -> List[str]:
         captions = []
 
         # Generate caption for each photo
@@ -88,20 +104,10 @@ class TwitterMentionProcessor:
             captions.append(caption)
 
         captions = self.caption_processor.process_captions(captions)
+        tweet_texts = split_text_to_tweets(captions)
+        return tweet_texts
 
-        text = ""
-        # Chunk large text into several tweets
-        for num, caption in enumerate(captions):
-            if len(text) + len(caption) >= settings.twitter_char_limit:
-                tweet_to_reply = tweet_text_to(self.api, tweet_to_reply, text)
-                text = ""
-            if num:
-                text += "\n"
-            text += caption
-        if text:
-            tweet_text_to(self.api, tweet_to_reply, text)
-
-    def process_tweet(self, tweet):
+    def process_tweet(self, tweet, post=True):
         logger.info(f"Start processing tweet '{tweet.id}'")
 
         photos = []
@@ -118,9 +124,16 @@ class TwitterMentionProcessor:
                 photos = get_photos(replied_tweet)
                 logger.info(f"Replied tweet '{replied_tweet.id}' has photos: {photos}")
 
+        tweet_texts = []
         if photos:
-            self.predict_and_post_captions(photos, tweet)
-        logger.info(f"Finish processing tweet '{tweet.id}'")
+            tweet_texts = self.process_photos(photos)
+
+        if tweet_texts and post:
+            for text in tweet_texts:
+                tweet = tweet_text_to(self.api, tweet, text)
+
+        logger.info(f"Finish processing, tweets: {tweet_texts}")
+        return tweet_texts
 
     def process_mentions(self):
         logger.info(f"Retrieving mentions since_id '{self.since_id}'")
@@ -132,7 +145,7 @@ class TwitterMentionProcessor:
         ).items():
             try:
                 self.since_id = max(tweet.id, self.since_id)
-                self.process_tweet(tweet)
+                self.process_tweet(tweet, post=True)
             except BaseException as error:
                 logger.error(f"Error while processing tweet '{tweet.id}': {error}")
 
