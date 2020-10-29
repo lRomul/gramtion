@@ -2,6 +2,7 @@ import cv2
 import torch
 import requests
 import numpy as np
+from typing import List
 
 from PIL import Image
 
@@ -13,6 +14,8 @@ from maskrcnn_benchmark.utils.model_serialization import load_state_dict
 
 import captioning.utils.misc
 import captioning.models
+
+from src.pydantic_models import Caption
 
 
 def load_pil_image(path):
@@ -53,8 +56,8 @@ class FeatureExtractor:
         self.detection_model = self._build_detection_model(checkpoint_path, config_path)
 
     @torch.no_grad()
-    def __call__(self, url):
-        return self.get_detectron_features(url)
+    def __call__(self, image):
+        return self.get_detectron_features(image)
 
     def _build_detection_model(self, checkpoint_path, config_path):
         cfg.merge_from_file(config_path)
@@ -139,8 +142,8 @@ class CaptionPredictor:
         caption_model.load_state_dict(torch.load(checkpoint_path))
         return caption_model
 
-    def get_captions(self, image_path):
-        image_feature = self.feature_extractor(image_path)
+    def get_captions(self, image: Image) -> List[Caption]:
+        image_feature = self.feature_extractor(image)
         sequence = self.caption_model(
             image_feature.mean(0)[None],
             image_feature[None],
@@ -152,6 +155,7 @@ class CaptionPredictor:
             },
         )[0]
         captions = self.caption_model.decode_sequence(sequence)
+        captions = [Caption(text=capt) for capt in captions]
         return captions
 
 

@@ -1,7 +1,7 @@
 import re
 from typing import Optional, Dict, List
 
-from src.utils import Caption
+from src.pydantic_models import Caption
 from src.settings import settings
 
 

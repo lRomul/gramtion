@@ -6,7 +6,8 @@ from typing import List
 
 from src.image_captioning import CaptionPredictor, load_pil_image
 from src.text_processing import CaptionProcessor
-from src.utils import Photo, Caption, setup_logging
+from src.pydantic_models import Photo, Caption
+from src.utils import setup_logging
 from src.settings import settings
 
 
@@ -25,7 +26,11 @@ def get_photos(tweet) -> List[Photo]:
     photos_lst = []
     for media in tweet.extended_entities["media"]:
         if media["type"] == "photo":
-            photos_lst.append(Photo(**media))
+            caption = None
+            if media["ext_alt_text"] is not None:
+                caption = Caption(text=media["ext_alt_text"], alt_text=True)
+            photo = Photo(url=media["media_url_https"], caption=caption)
+            photos_lst.append(photo)
     return photos_lst
 
 
@@ -99,11 +104,10 @@ class TwitterMentionProcessor:
 
         # Generate caption for each photo
         for photo in photos:
-            if photo.ext_alt_text is None:
-                image = load_pil_image(photo.media_url_https)
-                caption = Caption(text=self.predictor.get_captions(image)[0])
-            else:
-                caption = Caption(text=photo.ext_alt_text, alt_text=True)
+            caption = photo.caption
+            if caption is None:
+                image = load_pil_image(photo.url)
+                caption = self.predictor.get_captions(image)[0]
             captions.append(caption)
 
         captions = self.caption_processor.process_captions(captions)
