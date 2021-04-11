@@ -1,4 +1,4 @@
-FROM ghcr.io/osai-ai/dokai:20.10-pytorch
+FROM ghcr.io/osai-ai/dokai:21.03-pytorch
 
 RUN pip3 install --no-cache-dir \
     git+https://github.com/ruotianluo/ImageCaptioning.pytorch.git@cd651fafa56e33a1d77ba1493c9785d766daa828 \
