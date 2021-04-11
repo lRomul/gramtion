@@ -9,7 +9,7 @@ RUN cd / && git clone -b master --single-branch https://gitlab.com/vedanuj/vqa-m
     cd vqa-maskrcnn-benchmark &&\
     git checkout 4c168a637f45dc69efed384c00a7f916f57b25b8 &&\
     sed -i -e 's/torch.cuda.is_available()/True/g' setup.py &&\
-    TORCH_CUDA_ARCH_LIST="3.7+PTX;5.0;6.0;6.1;7.0;7.5" python3 setup.py build develop
+    TORCH_CUDA_ARCH_LIST="5.2;6.0;6.1;7.0;7.5;8.0;8.6" python3 setup.py build develop
 ENV PYTHONPATH "${PYTHONPATH}:/vqa-maskrcnn-benchmark"
 
 RUN mkdir /model_data && cd /model_data &&\
