@@ -26,6 +26,7 @@ run:
 	docker run -d --restart=always \
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
+		-p 7518:7518 \
 		--env-file .env \
 		-v $(shell pwd)/google_key.json:/workdir/google_key.json \
 		--name=$(NAME) \
@@ -36,6 +37,7 @@ run-dev:
 	docker run --rm -dit \
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
+		-p 7518:7518 \
 		--env-file .env \
 		-v $(shell pwd)/google_key.json:/workdir/google_key.json \
 		--name=$(NAME) \

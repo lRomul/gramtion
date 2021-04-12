@@ -25,5 +25,6 @@ RUN wget -O /model_data/detectron_model.pth \
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
+EXPOSE 7518
 COPY . /workdir
 CMD ["python", "src/twitter_bot.py"]

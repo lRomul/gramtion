@@ -1,13 +1,15 @@
 import time
 import tweepy
-import signal
 import logging
-from typing import List
+from typing import List, Optional
+from queue import Queue
+from threading import Thread
 
 from src.image_captioning import CaptionPredictor, load_pil_image
 from src.google_vision_api import GoogleVisionPredictor
 from src.prediction_processing import PredictionProcessor
 from src.pydantic_models import Photo, Caption, PhotoPrediction
+from src.web_server import run_web_server, tweets_queue
 from src.utils import setup_logging
 from src.settings import settings
 
@@ -78,16 +80,18 @@ class TwitterMentionProcessor:
         label_predictor: GoogleVisionPredictor,
         since_id: str = "old",
         sleep: float = 14.0,
+        tweets_queue: Optional[Queue] = None
     ):
         self.api = api
         self.caption_predictor = caption_predictor
         self.label_predictor = label_predictor
         self.sleep = sleep
+        self.tweets_queue = tweets_queue
         self.me = api.me()
         self.caption_processor = PredictionProcessor()
         self.since_id = self.init_since_id(since_id)
+        self._thread = None
         self._stopped = True
-        self.init_signals()
 
     def init_since_id(self, since_id: str) -> int:
         if since_id in {"old", "new"}:
@@ -161,7 +165,18 @@ class TwitterMentionProcessor:
             except BaseException as error:
                 logger.error(f"Error while processing tweet '{tweet.id}': {error}")
 
-    def run_processing(self):
+    def process_tweet_id(self, tweet_id: int):
+        try:
+            tweet = self.api.get_status(
+                tweet_id,
+                tweet_mode="extended",
+                include_ext_alt_text=True
+            )
+            self.process_tweet(tweet)
+        except BaseException as error:
+            logger.error(f"Error while processing tweet id '{tweet_id}': {error}")
+
+    def _run_processing(self):
         logger.info(f"Starting with since_id: '{self.since_id}'")
         self._stopped = False
         prev_time = 0
@@ -170,17 +185,25 @@ class TwitterMentionProcessor:
             if now_time - prev_time > self.sleep:
                 prev_time = now_time
                 self.process_mentions()
+
+            if self.tweets_queue is not None:
+                while not self.tweets_queue.empty():
+                    self.process_tweet_id(self.tweets_queue.get())
+
             sleep = max(0.0, self.sleep - time.time() + prev_time)
             sleep = min(1.0, sleep)
             time.sleep(sleep)
 
-    def init_signals(self):
-        signal.signal(signal.SIGINT, self.handle_signal)
-        signal.signal(signal.SIGTERM, self.handle_signal)
+    def start(self):
+        self._thread = Thread(target=self._run_processing)
+        self._thread.daemon = True
+        self._thread.start()
 
-    def handle_signal(self, signum, frame):
-        logger.info(f"Handle signal: {signal.Signals(signum).name}")
+    def stop(self):
         self._stopped = True
+
+    def wait(self):
+        self._thread.join()
 
 
 if __name__ == "__main__":
@@ -214,5 +237,10 @@ if __name__ == "__main__":
         label_predictor,
         since_id=settings.since_id,
         sleep=14.0,
+        tweets_queue=tweets_queue
     )
-    processor.run_processing()
+    processor.start()
+    run_web_server()
+
+    processor.stop()
+    processor.wait()
