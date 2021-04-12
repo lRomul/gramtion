@@ -5,6 +5,13 @@ from src.pydantic_models import PhotoPrediction
 from src.settings import settings
 
 
+def has_font(prediction: PhotoPrediction):
+    for label in prediction.labels:
+        if label.name == 'Font':
+            return True
+    return False
+
+
 class PredictionProcessor:
     def __init__(self, caption_replace_dict: Optional[Dict[str, str]] = None):
         if caption_replace_dict is None:
@@ -20,16 +27,19 @@ class PredictionProcessor:
         message = f"Photo {photo_num}\n"
 
         caption_text = caption.text
-        if not caption.alt_text:
+        phrase = ""
+        if not caption.alt_text and not has_font(prediction):
             caption_text = caption.text.lower()
             for key, value in self.caption_replace_dict.items():
                 caption_text = re.sub(r"\b{}\b".format(key), value, caption_text)
             caption_text = caption_text.capitalize() + "."
             phrase = "May show"
-        else:
+        elif caption.alt_text:
             phrase = "Alt text"
-        caption_text = f"{phrase}: {caption_text}\n"
-        message += caption_text
+
+        if phrase:
+            caption_text = f"{phrase}: {caption_text}\n"
+            message += caption_text
 
         labels_text = ", ".join([l.name for l in prediction.labels])
         labels_text = f"Tags: {labels_text.capitalize()}."
