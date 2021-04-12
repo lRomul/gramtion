@@ -195,15 +195,18 @@ class TwitterMentionProcessor:
             time.sleep(sleep)
 
     def start(self):
-        self._thread = Thread(target=self._run_processing)
-        self._thread.daemon = True
-        self._thread.start()
+        if self._thread is None:
+            self._thread = Thread(target=self._run_processing)
+            self._thread.daemon = True
+            self._thread.start()
 
     def stop(self):
         self._stopped = True
 
     def wait(self):
-        self._thread.join()
+        if self._thread is not None:
+            self._thread.join()
+            self._thread = None
 
 
 if __name__ == "__main__":
