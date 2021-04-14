@@ -27,19 +27,19 @@ class PredictionProcessor:
         message = f"Photo {photo_num}\n"
 
         caption_text = caption.text
-        phrase = ""
         if not caption.alt_text and not has_font(prediction):
             caption_text = caption.text.lower()
             for key, value in self.caption_replace_dict.items():
                 caption_text = re.sub(r"\b{}\b".format(key), value, caption_text)
             caption_text = caption_text.capitalize() + "."
-            phrase = "May show"
+            caption_text = f"May show: {caption_text}\n"
         elif caption.alt_text:
-            phrase = "Alt text"
+            caption_text = f"Alt text: {caption_text}\n"
+        else:  # has_font(prediction)
+            caption_text = ("Image with a lot of text. "
+                            "Bot will soon support text recognition.\n")
 
-        if phrase:
-            caption_text = f"{phrase}: {caption_text}\n"
-            message += caption_text
+        message += caption_text
 
         labels_text = ", ".join([l.name for l in prediction.labels])
         labels_text = f"Tags: {labels_text.capitalize()}."
