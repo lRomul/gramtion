@@ -36,7 +36,7 @@ class PredictionProcessor:
         elif caption.alt_text:
             caption_text = f"Alt text: {caption_text}\n"
         else:  # has_font(prediction)
-            caption_text = f"Сontains text: {prediction.ocr_text.text}"
+            caption_text = f"Сontains text:\n{prediction.ocr_text.text}"
 
         message += caption_text
 
