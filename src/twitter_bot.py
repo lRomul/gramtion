@@ -69,7 +69,8 @@ def split_text_to_tweets(texts):
         text += caption
     if text:
         tweet_texts.append(text)
-    return tweet_texts
+    # TODO: find the reason for the blank tweet
+    return [t for t in tweet_texts if t]
 
 
 class TwitterMentionProcessor:
