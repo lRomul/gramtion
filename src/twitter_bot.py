@@ -77,14 +77,14 @@ class TwitterMentionProcessor:
         self,
         api,
         caption_predictor: CaptionPredictor,
-        label_predictor: GoogleVisionPredictor,
+        google_predictor: GoogleVisionPredictor,
         since_id: str = "old",
         sleep: float = 14.0,
         tweets_queue: Optional[Queue] = None
     ):
         self.api = api
         self.caption_predictor = caption_predictor
-        self.label_predictor = label_predictor
+        self.google_predictor = google_predictor
         self.sleep = sleep
         self.tweets_queue = tweets_queue
         self.me = api.me()
@@ -116,8 +116,10 @@ class TwitterMentionProcessor:
                 image = load_pil_image(photo.url)
                 caption = self.caption_predictor.get_captions(image)[0]
 
-            labels = self.label_predictor.get_labels(photo.url)
-            predictions.append(PhotoPrediction(caption=caption, labels=labels))
+            labels, ocr_text = self.google_predictor.predict(photo.url)
+            predictions.append(PhotoPrediction(caption=caption,
+                                               labels=labels,
+                                               ocr_text=ocr_text))
 
         messages = self.caption_processor.predictions_to_messages(predictions)
         tweet_texts = split_text_to_tweets(messages)
@@ -231,13 +233,13 @@ if __name__ == "__main__":
     }
     caption_predictor = CaptionPredictor(**predictor_params)
     logger.info(f"Caption predictor loaded: {caption_predictor}")
-    label_predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=5)
-    logger.info(f"Label predictor loaded: {label_predictor}")
+    google_predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=5)
+    logger.info(f"Google predictor loaded: {google_predictor}")
 
     processor = TwitterMentionProcessor(
         twitter_api,
         caption_predictor,
-        label_predictor,
+        google_predictor,
         since_id=settings.since_id,
         sleep=14.0,
         tweets_queue=tweets_queue

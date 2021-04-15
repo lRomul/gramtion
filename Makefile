@@ -37,7 +37,7 @@ run-dev:
 	docker run --rm -dit \
 		$(OPTIONS) \
 		$(GPUS_OPTION) \
-		-p 7518:7518 \
+		--net=host \
 		--env-file .env \
 		-v $(shell pwd)/google_key.json:/workdir/google_key.json \
 		--name=$(NAME) \

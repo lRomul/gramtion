@@ -1,7 +1,7 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from google.cloud import vision
 
-from src.pydantic_models import Label
+from src.pydantic_models import Label, OCRText
 from src.utils import generate_repr
 
 
@@ -11,13 +11,17 @@ class GoogleVisionPredictor:
         self.max_number = max_number
         self.client = vision.ImageAnnotatorClient()
 
-    def get_labels(self, image_url) -> List[Label]:
+    def predict(self, image_url) -> Tuple[List[Label], OCRText]:
         response = self.client.annotate_image(
             {
                 "image": {"source": {"image_uri": image_url}},
-                "features": [{"type_": vision.Feature.Type.LABEL_DETECTION}],
+                "features": [
+                    {"type_": vision.Feature.Type.LABEL_DETECTION},
+                    {"type_": vision.Feature.Type.DOCUMENT_TEXT_DETECTION}
+                ],
             }
         )
+
         labels = []
         for label_annotation in response.label_annotations:
             label = Label(
@@ -26,7 +30,14 @@ class GoogleVisionPredictor:
             labels.append(label)
         if self.max_number is not None:
             labels = labels[: self.max_number]
-        return labels
+
+        if response.text_annotations:
+            ocr_text = response.text_annotations[0]
+            ocr_text = OCRText(text=ocr_text.description, locale=ocr_text.locale)
+        else:
+            ocr_text = OCRText(text="", locale="")
+
+        return labels, ocr_text
 
     def __repr__(self):
         return generate_repr(
@@ -46,4 +57,4 @@ if __name__ == "__main__":
         "11138870/96363040-6da16080-113a-11eb-83f7-3cdb65b62dbb.jpg"
     )
     print(predictor)
-    print(predictor.get_labels(image_url))
+    print(predictor.predict(image_url))

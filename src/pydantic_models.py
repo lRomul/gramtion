@@ -18,6 +18,12 @@ class Label(BaseModel):
     score: float
 
 
+class OCRText(BaseModel):
+    text: str
+    locale: str
+
+
 class PhotoPrediction(BaseModel):
     caption: Caption
     labels: List[Label]
+    ocr_text: OCRText
