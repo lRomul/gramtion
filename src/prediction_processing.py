@@ -36,12 +36,11 @@ class PredictionProcessor:
         elif caption.alt_text:
             caption_text = f"Alt text: {caption_text}\n"
         else:  # has_font(prediction)
-            caption_text = ("Image with a lot of text. "
-                            "Bot will soon support text recognition.\n")
+            caption_text = f"Сontains text: {prediction.ocr_text.text}"
 
         message += caption_text
 
-        labels_text = ", ".join([l.name for l in prediction.labels])
+        labels_text = ", ".join([lab.name for lab in prediction.labels])
         labels_text = f"Tags: {labels_text.capitalize()}."
         message += labels_text
 

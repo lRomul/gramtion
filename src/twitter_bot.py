@@ -233,7 +233,7 @@ if __name__ == "__main__":
     }
     caption_predictor = CaptionPredictor(**predictor_params)
     logger.info(f"Caption predictor loaded: {caption_predictor}")
-    google_predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=5)
+    google_predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=3)
     logger.info(f"Google predictor loaded: {google_predictor}")
 
     processor = TwitterMentionProcessor(
