@@ -8,10 +8,7 @@ class Settings(BaseSettings):
     consumer_secret: str
     access_token: str
     access_token_secret: str
-    feature_checkpoint_path: Path = "/model_data/detectron_model.pth"
-    feature_config_path: Path = "/model_data/detectron_model.yaml"
-    caption_checkpoint_path: Path = "/model_data/model-best.pth"
-    caption_config_path: Path = "/model_data/infos_trans12-best.pkl"
+    caption_config_path: Path = "width_ablations/bicaptioning_R_50_L1_H2048.yaml"
     twitter_char_limit: int = 280
     device: str = "cpu"
     since_id: str = "old"

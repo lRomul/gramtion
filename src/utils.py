@@ -1,5 +1,16 @@
 import sys
 import logging
+import requests
+from PIL import Image
+
+
+def load_pil_image(path):
+    if path.startswith("http"):
+        path = requests.get(path, stream=True).raw
+    else:
+        path = path
+    image = Image.open(path).convert("RGB")
+    return image
 
 
 def setup_logging(log_level: str = "INFO"):
