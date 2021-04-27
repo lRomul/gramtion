@@ -29,7 +29,6 @@ class PredictionProcessor:
         caption = prediction.caption
         message = f"Photo {photo_num}\n"
 
-        caption_text = caption.text
         if not caption.alt_text and not has_font(prediction):
             caption_text = caption.text.lower()
             for key, value in self.caption_replace_dict.items():
@@ -37,7 +36,9 @@ class PredictionProcessor:
             caption_text = caption_text.capitalize() + "."
             caption_text = f"May show: {caption_text}\n"
         elif caption.alt_text:
-            caption_text = f"Alt text: {caption_text}\n"
+            caption_text = f"Alt text: {caption.text}\n"
+        else:
+            caption_text = ""
 
         if len(prediction.ocr_text.text) >= self.ocr_text_min_len:
             caption_text += f"Сontains text:\n{prediction.ocr_text.text}\n"
