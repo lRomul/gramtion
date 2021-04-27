@@ -13,12 +13,15 @@ def has_font(prediction: PhotoPrediction):
 
 
 class PredictionProcessor:
-    def __init__(self, caption_replace_dict: Optional[Dict[str, str]] = None):
+    def __init__(self,
+                 caption_replace_dict: Optional[Dict[str, str]] = None,
+                 ocr_text_min_len: int = 5):
         if caption_replace_dict is None:
             caption_replace_dict = {
                 "unk": "unknown",
             }
         self.caption_replace_dict = caption_replace_dict
+        self.ocr_text_min_len = ocr_text_min_len
 
     def process_prediction(
         self, prediction: PhotoPrediction, photo_num: int = 0
@@ -35,8 +38,9 @@ class PredictionProcessor:
             caption_text = f"May show: {caption_text}\n"
         elif caption.alt_text:
             caption_text = f"Alt text: {caption_text}\n"
-        else:  # has_font(prediction)
-            caption_text = f"Сontains text:\n{prediction.ocr_text.text}"
+
+        if len(prediction.ocr_text.text) >= self.ocr_text_min_len:
+            caption_text += f"Сontains text:\n{prediction.ocr_text.text}\n"
 
         message += caption_text
 
