@@ -3,3 +3,6 @@ tweepy==3.9.0
 python-dotenv==0.14.0
 google-cloud-vision==2.0.0
 bottle==0.12.19
+ftfy==6.0.1
+regex==2021.4.4
+tqdm==4.60.0

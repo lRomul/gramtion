@@ -1,4 +1,4 @@
-FROM ghcr.io/osai-ai/dokai:20.10-pytorch
+FROM ghcr.io/osai-ai/dokai:20.12-pytorch
 
 RUN pip3 install --no-cache-dir \
     git+https://github.com/ruotianluo/ImageCaptioning.pytorch.git@cd651fafa56e33a1d77ba1493c9785d766daa828 \
@@ -24,6 +24,9 @@ RUN wget -O /model_data/detectron_model.pth \
 # Install python packages
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+RUN pip3 install --no-cache-dir --no-deps \
+    git+https://github.com/openai/CLIP.git@cfcffb90e69f37bf2ff1e988237a0fbe41f33c04
 
 EXPOSE 7518
 COPY . /workdir
