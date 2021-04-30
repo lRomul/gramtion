@@ -1,6 +1,5 @@
 import cv2
 import torch
-import requests
 import numpy as np
 from typing import List
 
@@ -16,16 +15,7 @@ import captioning.utils.misc
 import captioning.models
 
 from src.pydantic_models import Caption
-from src.utils import generate_repr
-
-
-def load_pil_image(path):
-    if path.startswith("http"):
-        path = requests.get(path, stream=True).raw
-    else:
-        path = path
-    image = Image.open(path).convert("RGB")
-    return image
+from src.utils import generate_repr, load_pil_image
 
 
 def image_transform(image):
