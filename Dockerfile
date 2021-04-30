@@ -28,6 +28,8 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 RUN pip3 install --no-cache-dir --no-deps \
     git+https://github.com/openai/CLIP.git@cfcffb90e69f37bf2ff1e988237a0fbe41f33c04
 
+RUN python3 -c "import clip; clip.load('ViT-B/32', device='cpu')"
+
 EXPOSE 7518
 COPY . /workdir
 CMD ["python", "src/twitter_bot.py"]
