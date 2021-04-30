@@ -137,6 +137,7 @@ class CaptionPredictor:
         caption_model.load_state_dict(torch.load(checkpoint_path))
         return caption_model
 
+    @torch.no_grad()
     def get_captions(self, image: Image) -> List[Caption]:
         image_feature = self.feature_extractor(image)
         sequence = self.caption_model(

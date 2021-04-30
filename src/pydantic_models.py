@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class Caption(BaseModel):
     text: str
     alt_text: bool = False
+    confidence: Optional[float] = None
 
 
 class Photo(BaseModel):
