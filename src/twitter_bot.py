@@ -239,8 +239,8 @@ if __name__ == "__main__":
         "feature_config_path": settings.feature_config_path,
         "caption_checkpoint_path": settings.caption_checkpoint_path,
         "caption_config_path": settings.caption_config_path,
-        "beam_size": 10,
-        "sample_n": 10,
+        "beam_size": 32,
+        "sample_n": 32,
         "device": settings.device,
     }
     caption_predictor = CaptionPredictor(**predictor_params)
