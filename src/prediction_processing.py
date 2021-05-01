@@ -12,15 +12,20 @@ def has_labels(prediction: PhotoPrediction, labels: List[str]):
     return False
 
 
+def caption_has_unknown(prediction: PhotoPrediction):
+    if not prediction.caption.alt_text:
+        if "UNK" in prediction.caption.text:
+            return True
+    return False
+
+
 class PredictionProcessor:
     def __init__(self,
                  caption_replace_dict: Optional[Dict[str, str]] = None,
                  ocr_text_min_len: int = 5,
                  clip_min_confidence: float = 0.2):
         if caption_replace_dict is None:
-            caption_replace_dict = {
-                "unk": "unknown",
-            }
+            caption_replace_dict = dict()
         self.caption_replace_dict = caption_replace_dict
         self.ocr_text_min_len = ocr_text_min_len
         self.clip_min_confidence = clip_min_confidence
@@ -31,21 +36,21 @@ class PredictionProcessor:
         caption = prediction.caption
         message = f"Photo {photo_num}\n"
 
-        if not caption.alt_text and caption.confidence >= self.clip_min_confidence:
+        caption_text = ""
+        if not caption.alt_text and not caption_has_unknown(prediction) \
+                and caption.confidence >= self.clip_min_confidence:
             caption_text = caption.text.lower()
             for key, value in self.caption_replace_dict.items():
                 caption_text = re.sub(r"\b{}\b".format(key), value, caption_text)
             caption_text = caption_text.capitalize() + "."
             confidence = round(caption.confidence * 100)
-            caption_text = f"May show ({confidence}% confidence): {caption_text}\n"
+            caption_text = f"May show ({confidence}%): {caption_text}\n"
         elif caption.alt_text:
             caption_text = f"Alt text: {caption.text}\n"
-        else:
-            caption_text = ""
 
         if has_labels(prediction, ['Font', 'Handwriting']):
             if len(prediction.ocr_text.text) >= self.ocr_text_min_len:
-                caption_text += f"Сontains text:\n{prediction.ocr_text.text}\n"
+                caption_text += f"Сontains text:\n{prediction.ocr_text.text}"
 
         message += caption_text
 
