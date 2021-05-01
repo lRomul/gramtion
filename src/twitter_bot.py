@@ -168,7 +168,7 @@ class TwitterMentionProcessor:
         ).items():
             try:
                 self.since_id = max(tweet.id, self.since_id)
-                self.process_tweet(tweet, post=True)
+                self.process_tweet(tweet)
             except BaseException as error:
                 logger.error(f"Error while processing tweet '{tweet.id}': {error}")
 
