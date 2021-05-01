@@ -5,12 +5,13 @@ from typing import List, Optional
 from queue import Queue
 from threading import Thread
 
-from src.image_captioning import CaptionPredictor, load_pil_image
+from src.image_captioning import CaptionPredictor
+from src.openai_clip import ClipPredictor
 from src.google_vision_api import GoogleVisionPredictor
 from src.prediction_processing import PredictionProcessor
 from src.pydantic_models import Photo, Caption, PhotoPrediction
 from src.web_server import run_web_server, tweets_queue
-from src.utils import setup_logging
+from src.utils import setup_logging, load_pil_image
 from src.settings import settings
 
 
@@ -78,6 +79,7 @@ class TwitterMentionProcessor:
         self,
         api,
         caption_predictor: CaptionPredictor,
+        clip_predictor: ClipPredictor,
         google_predictor: GoogleVisionPredictor,
         since_id: str = "old",
         sleep: float = 14.0,
@@ -85,6 +87,7 @@ class TwitterMentionProcessor:
     ):
         self.api = api
         self.caption_predictor = caption_predictor
+        self.clip_predictor = clip_predictor
         self.google_predictor = google_predictor
         self.sleep = sleep
         self.tweets_queue = tweets_queue
@@ -115,7 +118,8 @@ class TwitterMentionProcessor:
             caption = photo.caption
             if caption is None:
                 image = load_pil_image(photo.url)
-                caption = self.caption_predictor.get_captions(image)[0]
+                captions = self.caption_predictor.get_captions(image)
+                caption = self.clip_predictor.match_best_caption(captions)
 
             labels, ocr_text = self.google_predictor.predict(photo.url)
             predictions.append(PhotoPrediction(caption=caption,
@@ -229,7 +233,7 @@ if __name__ == "__main__":
         "caption_checkpoint_path": settings.caption_checkpoint_path,
         "caption_config_path": settings.caption_config_path,
         "beam_size": 5,
-        "sample_n": 1,
+        "sample_n": 10,
         "device": settings.device,
     }
     caption_predictor = CaptionPredictor(**predictor_params)
@@ -237,9 +241,15 @@ if __name__ == "__main__":
     google_predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=3)
     logger.info(f"Google predictor loaded: {google_predictor}")
 
+    clip_predictor = ClipPredictor(
+        clip_model_name=settings.clip_model_name,
+        device=settings.device
+    )
+
     processor = TwitterMentionProcessor(
         twitter_api,
         caption_predictor,
+        clip_predictor,
         google_predictor,
         since_id=settings.since_id,
         sleep=14.0,
