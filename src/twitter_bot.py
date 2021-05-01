@@ -120,7 +120,7 @@ class TwitterMentionProcessor:
             if caption is None:
                 image = load_pil_image(photo.url)
                 captions = self.caption_predictor.get_captions(image)
-                caption = self.clip_predictor.match_best_caption(captions)
+                caption = self.clip_predictor.match_best_caption(image, captions)
 
             labels, ocr_text = self.google_predictor.predict(photo.url)
             predictions.append(PhotoPrediction(caption=caption,
@@ -233,13 +233,13 @@ if __name__ == "__main__":
         "feature_config_path": settings.feature_config_path,
         "caption_checkpoint_path": settings.caption_checkpoint_path,
         "caption_config_path": settings.caption_config_path,
-        "beam_size": 5,
+        "beam_size": 10,
         "sample_n": 10,
         "device": settings.device,
     }
     caption_predictor = CaptionPredictor(**predictor_params)
     logger.info(f"Caption predictor loaded: {caption_predictor}")
-    google_predictor = GoogleVisionPredictor(score_threshold=0.8, max_number=3)
+    google_predictor = GoogleVisionPredictor(score_threshold=0.7, max_number=5)
     logger.info(f"Google predictor loaded: {google_predictor}")
 
     clip_predictor = ClipPredictor(
@@ -250,7 +250,7 @@ if __name__ == "__main__":
     caption_processor = PredictionProcessor(
         caption_replace_dict=None,
         ocr_text_min_len=5,
-        clip_min_confidence=0.5
+        clip_min_confidence=0.2
     )
 
     processor = TwitterMentionProcessor(

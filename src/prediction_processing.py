@@ -5,11 +5,18 @@ from src.pydantic_models import PhotoPrediction
 from src.settings import settings
 
 
+def has_font(prediction: PhotoPrediction):
+    for label in prediction.labels:
+        if label.name == 'Font':
+            return True
+    return False
+
+
 class PredictionProcessor:
     def __init__(self,
                  caption_replace_dict: Optional[Dict[str, str]] = None,
                  ocr_text_min_len: int = 5,
-                 clip_min_confidence: float = 0.5):
+                 clip_min_confidence: float = 0.2):
         if caption_replace_dict is None:
             caption_replace_dict = {
                 "unk": "unknown",
@@ -30,13 +37,13 @@ class PredictionProcessor:
                 caption_text = re.sub(r"\b{}\b".format(key), value, caption_text)
             caption_text = caption_text.capitalize() + "."
             confidence = round(caption.confidence * 100)
-            caption_text = f"May show ({confidence}%): {caption_text}\n"
+            caption_text = f"May show ({confidence}% confidence): {caption_text}\n"
         elif caption.alt_text:
             caption_text = f"Alt text: {caption.text}\n"
         else:
             caption_text = ""
 
-        if len(prediction.ocr_text.text) >= self.ocr_text_min_len:
+        if has_font(prediction) and len(prediction.ocr_text.text) >= self.ocr_text_min_len:
             caption_text += f"Сontains text:\n{prediction.ocr_text.text}\n"
 
         message += caption_text
