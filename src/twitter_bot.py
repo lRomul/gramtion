@@ -38,6 +38,15 @@ def get_photos(tweet) -> List[Photo]:
     return photos_lst
 
 
+def get_tweet(api, tweet_id):
+    tweet = api.get_status(
+        tweet_id,
+        tweet_mode="extended",
+        include_ext_alt_text=True
+    )
+    return tweet
+
+
 def tweet_is_reply(tweet) -> bool:
     return tweet.in_reply_to_status_id is not None
 
@@ -139,14 +148,15 @@ class TwitterMentionProcessor:
             photos = get_photos(tweet)
             logger.info(f"Tweet '{tweet.id}' has photos: {photos}")
         elif tweet_is_reply(tweet):
-            replied_tweet = self.api.get_status(
-                tweet.in_reply_to_status_id,
-                tweet_mode="extended",
-                include_ext_alt_text=True,
-            )
+            replied_tweet = get_tweet(self.api, tweet.in_reply_to_status_id)
             if tweet_has_photo(replied_tweet):
                 photos = get_photos(replied_tweet)
                 logger.info(f"Replied tweet '{replied_tweet.id}' has photos: {photos}")
+        elif tweet.is_quote_status:
+            quoted_tweet = get_tweet(self.api, tweet.quoted_status_id)
+            if tweet_has_photo(quoted_tweet):
+                photos = get_photos(quoted_tweet)
+                logger.info(f"Quoted tweet '{quoted_tweet.id}' has photos: {photos}")
 
         tweet_texts = []
         if photos:
@@ -175,11 +185,7 @@ class TwitterMentionProcessor:
 
     def process_tweet_id(self, tweet_id: int):
         try:
-            tweet = self.api.get_status(
-                tweet_id,
-                tweet_mode="extended",
-                include_ext_alt_text=True
-            )
+            tweet = get_tweet(self.api, tweet_id)
             self.process_tweet(tweet)
         except BaseException as error:
             logger.error(f"Error while processing tweet id '{tweet_id}': {error}")
