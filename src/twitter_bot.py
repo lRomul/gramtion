@@ -186,7 +186,15 @@ class TwitterMentionProcessor:
     def process_tweet_id(self, tweet_id: int):
         try:
             tweet = get_tweet(self.api, tweet_id)
-            self.process_tweet(tweet)
+            try:
+                self.process_tweet(tweet)
+            except tweepy.TweepError as error:
+                logger.error(f"Error while processing tweet id '{tweet_id}': {error}")
+                if tweet_is_reply(tweet):
+                    tweet_id = tweet.in_reply_to_status_id
+                    logger.error(f"Try to process replied tweet id '{tweet_id}'")
+                    tweet = get_tweet(self.api, tweet.in_reply_to_status_id)
+                    self.process_tweet(tweet)
         except BaseException as error:
             logger.error(f"Error while processing tweet id '{tweet_id}': {error}")
 
