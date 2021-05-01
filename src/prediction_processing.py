@@ -34,7 +34,7 @@ class PredictionProcessor:
         self, prediction: PhotoPrediction, photo_num: int = 0
     ) -> str:
         caption = prediction.caption
-        message = f"Photo {photo_num}\n"
+        message = f"Image {photo_num}\n"
 
         caption_text = ""
         if not caption.alt_text and not caption_has_unknown(prediction) \
