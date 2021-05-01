@@ -5,9 +5,9 @@ from src.pydantic_models import PhotoPrediction
 from src.settings import settings
 
 
-def has_font(prediction: PhotoPrediction):
+def has_labels(prediction: PhotoPrediction, labels: List[str]):
     for label in prediction.labels:
-        if label.name == 'Font':
+        if label.name in labels:
             return True
     return False
 
@@ -43,8 +43,9 @@ class PredictionProcessor:
         else:
             caption_text = ""
 
-        if has_font(prediction) and len(prediction.ocr_text.text) >= self.ocr_text_min_len:
-            caption_text += f"Сontains text:\n{prediction.ocr_text.text}\n"
+        if has_labels(prediction, ['Font', 'Handwriting']):
+            if len(prediction.ocr_text.text) >= self.ocr_text_min_len:
+                caption_text += f"Сontains text:\n{prediction.ocr_text.text}\n"
 
         message += caption_text
 
