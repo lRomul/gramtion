@@ -256,7 +256,7 @@ if __name__ == "__main__":
     caption_processor = PredictionProcessor(
         caption_replace_dict=None,
         ocr_text_min_len=5,
-        clip_min_confidence=0.2
+        clip_min_confidence=0.0
     )
 
     processor = TwitterMentionProcessor(

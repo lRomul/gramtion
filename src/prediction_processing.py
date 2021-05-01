@@ -23,7 +23,7 @@ class PredictionProcessor:
     def __init__(self,
                  caption_replace_dict: Optional[Dict[str, str]] = None,
                  ocr_text_min_len: int = 5,
-                 clip_min_confidence: float = 0.2):
+                 clip_min_confidence: float = 0.0):
         if caption_replace_dict is None:
             caption_replace_dict = dict()
         self.caption_replace_dict = caption_replace_dict
