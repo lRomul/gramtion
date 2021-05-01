@@ -81,6 +81,7 @@ class TwitterMentionProcessor:
         caption_predictor: CaptionPredictor,
         clip_predictor: ClipPredictor,
         google_predictor: GoogleVisionPredictor,
+        caption_processor: PredictionProcessor,
         since_id: str = "old",
         sleep: float = 14.0,
         tweets_queue: Optional[Queue] = None
@@ -92,7 +93,7 @@ class TwitterMentionProcessor:
         self.sleep = sleep
         self.tweets_queue = tweets_queue
         self.me = api.me()
-        self.caption_processor = PredictionProcessor()
+        self.caption_processor = caption_processor
         self.since_id = self.init_since_id(since_id)
         self._thread = None
         self._stopped = True
@@ -246,11 +247,18 @@ if __name__ == "__main__":
         device=settings.device
     )
 
+    caption_processor = PredictionProcessor(
+        caption_replace_dict=None,
+        ocr_text_min_len=5,
+        clip_min_confidence=0.5
+    )
+
     processor = TwitterMentionProcessor(
         twitter_api,
         caption_predictor,
         clip_predictor,
         google_predictor,
+        caption_processor,
         since_id=settings.since_id,
         sleep=14.0,
         tweets_queue=tweets_queue
