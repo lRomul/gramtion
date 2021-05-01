@@ -48,9 +48,10 @@ class PredictionProcessor:
 
         message += caption_text
 
-        labels_text = ", ".join([lab.name for lab in prediction.labels])
-        labels_text = f"Tags: {labels_text.capitalize()}."
-        message += labels_text
+        if prediction.labels:
+            labels_text = ", ".join([lab.name for lab in prediction.labels])
+            labels_text = f"Tags: {labels_text.capitalize()}."
+            message += labels_text
 
         message = message[: settings.twitter_char_limit]
         return message
