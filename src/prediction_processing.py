@@ -40,7 +40,7 @@ class PredictionProcessor:
         if not caption.alt_text and not caption_has_unknown(prediction) \
                 and not has_labels(prediction, ['Font'], 1) \
                 and caption.confidence >= self.clip_min_confidence:
-            caption_text = caption_text.lower().capitalize() + "."
+            caption_text = caption.text.lower().capitalize() + "."
             confidence = round(caption.confidence * 100)
             caption_text = f"May show ({confidence}%): {caption_text}\n"
         elif caption.alt_text:
