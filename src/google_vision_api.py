@@ -1,8 +1,29 @@
 from typing import Optional, List, Tuple
 from google.cloud import vision
+from shapely.geometry import Polygon
 
 from src.pydantic_models import Label, OCRText
-from src.utils import generate_repr
+from src.utils import generate_repr, load_pil_image
+
+
+def text_annot2poly(text_annot):
+    return Polygon([(vertex.x, vertex.y) for vertex
+                    in text_annot.bounding_poly.vertices])
+
+
+def calculate_area_ratio(response, image_url):
+    image = load_pil_image(image_url)
+    poly = Polygon([
+        (0, 0),
+        (0, image.size[1]),
+        (image.size[0], image.size[1]),
+        (image.size[0], 0),
+    ])
+    image_area = poly.area
+    for text_annot in response.text_annotations[1:]:
+        poly = poly.difference(text_annot2poly(text_annot))
+    area_ratio = (image_area - poly.area) / image_area
+    return area_ratio
 
 
 class GoogleVisionPredictor:
@@ -32,10 +53,13 @@ class GoogleVisionPredictor:
             labels = labels[: self.max_number]
 
         if response.text_annotations:
-            ocr_text = response.text_annotations[0]
-            ocr_text = OCRText(text=ocr_text.description, locale=ocr_text.locale)
+            text_annot = response.text_annotations[0]
+            area_ratio = calculate_area_ratio(response, image_url)
+            ocr_text = OCRText(text=text_annot.description,
+                               locale=text_annot.locale,
+                               area=area_ratio)
         else:
-            ocr_text = OCRText(text="", locale="")
+            ocr_text = OCRText(text="", locale="", area=0.0)
 
         return labels, ocr_text
 

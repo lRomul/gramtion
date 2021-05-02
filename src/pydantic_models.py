@@ -22,6 +22,7 @@ class Label(BaseModel):
 class OCRText(BaseModel):
     text: str
     locale: str
+    area: float
 
 
 class PhotoPrediction(BaseModel):

@@ -6,3 +6,4 @@ bottle==0.12.19
 ftfy==6.0.1
 regex==2021.4.4
 tqdm==4.60.0
+Shapely==1.7.1
