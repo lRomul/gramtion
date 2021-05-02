@@ -135,6 +135,7 @@ class TwitterMentionProcessor:
             predictions.append(PhotoPrediction(caption=caption,
                                                labels=labels,
                                                ocr_text=ocr_text))
+        logger.info(f"Photo predictions: {predictions}")
 
         messages = self.caption_processor.predictions_to_messages(predictions)
         tweet_texts = split_text_to_tweets(messages)
@@ -256,8 +257,9 @@ if __name__ == "__main__":
     logger.info(f"Clip predictor loaded: {clip_predictor}")
 
     caption_processor = PredictionProcessor(
-        ocr_text_min_len=5,
-        clip_min_confidence=0.0
+        clip_min_confidence=0.0,
+        max_text_area_for_caption=0.3,
+        min_text_area_for_ocr=0.03
     )
     logger.info(f"Prediction processor created: {caption_processor}")
 

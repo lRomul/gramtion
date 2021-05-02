@@ -1,19 +1,8 @@
-from typing import Optional, List
+from typing import List
 
 from src.pydantic_models import PhotoPrediction
 from src.settings import settings
 from src.utils import generate_repr
-
-
-def has_labels(prediction: PhotoPrediction,
-               labels: List[str],
-               number: Optional[int] = None):
-    if number is None:
-        number = len(labels)
-    for label in prediction.labels[:number]:
-        if label.name in labels:
-            return True
-    return False
 
 
 def caption_has_unknown(prediction: PhotoPrediction):
@@ -25,10 +14,12 @@ def caption_has_unknown(prediction: PhotoPrediction):
 
 class PredictionProcessor:
     def __init__(self,
-                 ocr_text_min_len: int = 5,
-                 clip_min_confidence: float = 0.0):
-        self.ocr_text_min_len = ocr_text_min_len
+                 clip_min_confidence: float = 0.0,
+                 max_text_area_for_caption: float = 0.3,
+                 min_text_area_for_ocr: float = 0.03):
         self.clip_min_confidence = clip_min_confidence
+        self.max_text_area_for_caption = max_text_area_for_caption
+        self.min_text_area_for_ocr = min_text_area_for_ocr
 
     def process_prediction(
         self, prediction: PhotoPrediction, photo_num: int = 0
@@ -38,7 +29,7 @@ class PredictionProcessor:
 
         caption_text = ""
         if not caption.alt_text and not caption_has_unknown(prediction) \
-                and not has_labels(prediction, ['Font'], 1) \
+                and prediction.ocr_text.area < self.max_text_area_for_caption \
                 and caption.confidence >= self.clip_min_confidence:
             caption_text = caption.text.lower().capitalize() + "."
             confidence = round(caption.confidence * 100)
@@ -46,9 +37,8 @@ class PredictionProcessor:
         elif caption.alt_text:
             caption_text = f"Alt text: {caption.text}\n"
 
-        if has_labels(prediction, ['Font', 'Handwriting']):
-            if len(prediction.ocr_text.text) >= self.ocr_text_min_len:
-                caption_text += f"Сontains text:\n{prediction.ocr_text.text}"
+        if prediction.ocr_text.area > self.min_text_area_for_ocr:
+            caption_text += f"Сontains text:\n{prediction.ocr_text.text}"
 
         message += caption_text
 
@@ -71,7 +61,8 @@ class PredictionProcessor:
         return generate_repr(
             self,
             [
-                "ocr_text_min_len",
                 "clip_min_confidence",
+                "max_text_area_for_caption",
+                "min_text_area_for_ocr",
             ],
         )
