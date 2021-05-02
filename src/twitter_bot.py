@@ -245,6 +245,7 @@ if __name__ == "__main__":
     }
     caption_predictor = CaptionPredictor(**predictor_params)
     logger.info(f"Caption predictor loaded: {caption_predictor}")
+
     google_predictor = GoogleVisionPredictor(score_threshold=0.7, max_number=5)
     logger.info(f"Google predictor loaded: {google_predictor}")
 
@@ -252,11 +253,13 @@ if __name__ == "__main__":
         clip_model_name=settings.clip_model_name,
         device=settings.device
     )
+    logger.info(f"Clip predictor loaded: {clip_predictor}")
 
     caption_processor = PredictionProcessor(
         ocr_text_min_len=5,
         clip_min_confidence=0.0
     )
+    logger.info(f"Prediction processor created: {caption_processor}")
 
     processor = TwitterMentionProcessor(
         twitter_api,

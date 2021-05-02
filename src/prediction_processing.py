@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from src.pydantic_models import PhotoPrediction
 from src.settings import settings
+from src.utils import generate_repr
 
 
 def has_labels(prediction: PhotoPrediction,
@@ -65,3 +66,12 @@ class PredictionProcessor:
             message = self.process_prediction(prediction, photo_num=num + 1)
             messages.append(message)
         return messages
+
+    def __repr__(self):
+        return generate_repr(
+            self,
+            [
+                "ocr_text_min_len",
+                "clip_min_confidence",
+            ],
+        )

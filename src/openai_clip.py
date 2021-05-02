@@ -5,6 +5,7 @@ from typing import List
 
 from src.image_captioning import load_pil_image
 from src.pydantic_models import Caption
+from src.utils import generate_repr
 
 
 class ClipPredictor:
@@ -26,6 +27,15 @@ class ClipPredictor:
         caption = captions[probs.argmax()].copy()
         caption.confidence = float(probs.max())
         return caption
+
+    def __repr__(self):
+        return generate_repr(
+            self,
+            [
+                "clip_model_name",
+                "device",
+            ],
+        )
 
 
 if __name__ == "__main__":
