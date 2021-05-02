@@ -32,8 +32,7 @@ class PredictionProcessor:
                 and prediction.ocr_text.area < self.max_text_area_for_caption \
                 and caption.confidence >= self.clip_min_confidence:
             caption_text = caption.text.lower().capitalize() + "."
-            confidence = round(caption.confidence * 100)
-            caption_text = f"May show ({confidence}%): {caption_text}\n"
+            caption_text = f"May show: {caption_text}\n"
         elif caption.alt_text:
             caption_text = f"Alt text: {caption.text}\n"
 
