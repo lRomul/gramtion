@@ -1,3 +1,4 @@
+import textwrap
 from typing import List
 
 from src.pydantic_models import PhotoPrediction
@@ -10,6 +11,13 @@ def caption_has_unknown(prediction: PhotoPrediction):
         if "UNK" in prediction.caption.text:
             return True
     return False
+
+
+def split_message(message: str):
+    messages = textwrap.wrap(message,
+                             settings.twitter_char_limit,
+                             break_long_words=False)
+    return messages
 
 
 class PredictionProcessor:
@@ -45,15 +53,13 @@ class PredictionProcessor:
             labels_text = ", ".join([lab.name for lab in prediction.labels])
             labels_text = f"Tags: {labels_text.capitalize()}."
             message += labels_text
-
-        message = message[: settings.twitter_char_limit]
         return message
 
     def predictions_to_messages(self, predictions: List[PhotoPrediction]) -> List[str]:
         messages = []
         for num, prediction in enumerate(predictions):
             message = self.process_prediction(prediction, photo_num=num + 1)
-            messages.append(message)
+            messages += split_message(message)
         return messages
 
     def __repr__(self):
