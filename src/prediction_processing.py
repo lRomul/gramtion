@@ -13,10 +13,14 @@ def caption_has_unknown(prediction: PhotoPrediction):
     return False
 
 
-def split_message(message: str):
-    messages = textwrap.wrap(message,
-                             settings.twitter_char_limit,
-                             break_long_words=False)
+def split_message(message: str, max_splits=9):
+    if len(message) <= settings.twitter_char_limit:
+        return [message]
+    else:
+        width = settings.twitter_char_limit - len(f" [{max_splits}/{max_splits}]")
+        messages = textwrap.wrap(message, width, break_long_words=False)
+        messages = [mes + f" [{num + 1}/{len(messages)}]"
+                    for num, mes in enumerate(messages)]
     return messages
 
 
