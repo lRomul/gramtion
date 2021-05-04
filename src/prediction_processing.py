@@ -18,7 +18,10 @@ def split_message(message: str, max_splits=9):
         return [message]
     else:
         width = settings.twitter_char_limit - len(f" [{max_splits}/{max_splits}]")
-        messages = textwrap.wrap(message, width, break_long_words=False)
+        messages = textwrap.wrap(message, width,
+                                 break_long_words=False,
+                                 replace_whitespace=False,
+                                 drop_whitespace=False)
         messages = messages[:max_splits]
         messages = [mes + f" [{num + 1}/{len(messages)}]"
                     for num, mes in enumerate(messages)]
