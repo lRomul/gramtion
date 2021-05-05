@@ -66,23 +66,6 @@ def tweet_text_to(api, tweet, text: str):
     return tweet
 
 
-def split_text_to_tweets(texts):
-    tweet_texts = []
-    text = ""
-    # Chunk large text into several tweets
-    for num, caption in enumerate(texts):
-        if len(text) + len(caption) >= settings.twitter_char_limit:
-            tweet_texts.append(text)
-            text = ""
-        if num:
-            text += "\n\n"
-        text += caption
-    if text:
-        tweet_texts.append(text)
-    # TODO: find the reason for the blank tweet
-    return [t for t in tweet_texts if t]
-
-
 class TwitterMentionProcessor:
     def __init__(
         self,
@@ -138,8 +121,7 @@ class TwitterMentionProcessor:
         logger.info(f"Photo predictions: {predictions}")
 
         messages = self.caption_processor.predictions_to_messages(predictions)
-        tweet_texts = split_text_to_tweets(messages)
-        return tweet_texts
+        return messages
 
     def process_tweet(self, tweet, post=True):
         logger.info(f"Start processing tweet '{tweet.id}'")
