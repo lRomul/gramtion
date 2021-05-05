@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     caption_checkpoint_path: Path = "/model_data/model-best.pth"
     caption_config_path: Path = "/model_data/infos_trans12-best.pkl"
     clip_model_name: str = "ViT-B/32"
-    twitter_char_limit: int = 280
+    twitter_char_limit: int = 270
     device: str = "cpu"
     since_id: str = "old"
     log_level: str = "INFO"

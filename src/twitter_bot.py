@@ -66,6 +66,22 @@ def tweet_text_to(api, tweet, text: str):
     return tweet
 
 
+def merge_small_messages(messages):
+    tweet_texts = []
+    text = ""
+    for num, message in enumerate(messages):
+        carriage_len = 2 if num else 0
+        if len(text) + len(message) + carriage_len >= settings.twitter_char_limit:
+            tweet_texts.append(text)
+            text = ""
+        if num:
+            text += "\n\n"
+        text += message
+    if text:
+        tweet_texts.append(text)
+    return [t for t in tweet_texts if t]
+
+
 class TwitterMentionProcessor:
     def __init__(
         self,
@@ -121,7 +137,8 @@ class TwitterMentionProcessor:
         logger.info(f"Photo predictions: {predictions}")
 
         messages = self.caption_processor.predictions_to_messages(predictions)
-        return messages
+        tweet_texts = merge_small_messages(messages)
+        return tweet_texts
 
     def process_tweet(self, tweet, post=True):
         logger.info(f"Start processing tweet '{tweet.id}'")
