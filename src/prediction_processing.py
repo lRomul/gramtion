@@ -13,7 +13,7 @@ def caption_has_unknown(prediction: PhotoPrediction):
     return False
 
 
-def split_message(message: str, max_splits=9):
+def split_message(message: str, max_splits=99):
     if len(message) <= settings.twitter_char_limit:
         return [message]
     else:
