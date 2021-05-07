@@ -62,6 +62,15 @@ def tweet_text_to(api, tweet, text: str):
         logger.info(f"New tweet id '{tweet.id}'")
     except tweepy.TweepError as error:
         logger.error(f"Raised Tweep error: {error}")
+        if error.api_code == 186:
+            # TODO: Find urls and recalculate length
+            logger.info(f"Try to replace urls")
+            tweet = api.update_status(
+                status=text.replace(".", ","),
+                in_reply_to_status_id=tweet.id,
+                auto_populate_reply_metadata=True,
+            )
+            logger.info(f"New tweet id '{tweet.id}'")
         raise error
     return tweet
 
