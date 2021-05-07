@@ -71,7 +71,8 @@ def tweet_text_to(api, tweet, text: str):
                 auto_populate_reply_metadata=True,
             )
             logger.info(f"New tweet id '{tweet.id}'")
-        raise error
+        else:
+            raise error
     return tweet
 
 
