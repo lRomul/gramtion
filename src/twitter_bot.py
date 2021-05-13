@@ -177,11 +177,11 @@ class TwitterMentionProcessor:
                 for attempt in range(post_attempts):
                     try:
                         tweet = tweet_text_to(self.api, tweet, text)
+                        break  # exit attempt loop if error not caused
                     except tweepy.TweepError as error:
                         logger.error(f"On {attempt + 1} attempt to post a tweet"
                                      f" caused error: {error}")
                         time.sleep(1.0)
-                    break
 
         logger.info(f"Finish processing, tweets: {tweet_texts}")
         return tweet_texts
