@@ -150,7 +150,7 @@ class TwitterMentionProcessor:
         tweet_texts = merge_small_messages(messages)
         return tweet_texts
 
-    def process_tweet(self, tweet, post=True):
+    def process_tweet(self, tweet, post=True, post_attempts: int = 3):
         logger.info(f"Start processing tweet '{tweet.id}'")
 
         photos = []
@@ -174,7 +174,14 @@ class TwitterMentionProcessor:
 
         if tweet_texts and post:
             for text in tweet_texts:
-                tweet = tweet_text_to(self.api, tweet, text)
+                for attempt in range(post_attempts):
+                    try:
+                        tweet = tweet_text_to(self.api, tweet, text)
+                    except tweepy.TweepError as error:
+                        logger.error(f"On {attempt + 1} attempt to post a tweet"
+                                     f" caused error: {error}")
+                        time.sleep(1.0)
+                    break
 
         logger.info(f"Finish processing, tweets: {tweet_texts}")
         return tweet_texts
