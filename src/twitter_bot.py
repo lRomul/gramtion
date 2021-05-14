@@ -188,17 +188,20 @@ class TwitterMentionProcessor:
 
     def process_mentions(self):
         logger.info(f"Retrieving mentions since_id '{self.since_id}'")
-        for tweet in tweepy.Cursor(
-            self.api.mentions_timeline,
-            since_id=self.since_id,
-            tweet_mode="extended",
-            include_ext_alt_text=True,
-        ).items():
-            try:
-                self.since_id = max(tweet.id, self.since_id)
-                self.process_tweet(tweet)
-            except BaseException as error:
-                logger.error(f"Error while processing tweet '{tweet.id}': {error}")
+        try:
+            for tweet in tweepy.Cursor(
+                self.api.mentions_timeline,
+                since_id=self.since_id,
+                tweet_mode="extended",
+                include_ext_alt_text=True,
+            ).items():
+                try:
+                    self.since_id = max(tweet.id, self.since_id)
+                    self.process_tweet(tweet)
+                except BaseException as error:
+                    logger.error(f"Error while processing tweet '{tweet.id}': {error}")
+        except BaseException as error:
+            logger.error(f"Error while mentions processing: {error}")
 
     def process_tweet_id(self, tweet_id: int):
         try:
