@@ -162,6 +162,12 @@ class TwitterMentionProcessor:
             if tweet_has_photo(replied_tweet):
                 photos = get_photos(replied_tweet)
                 logger.info(f"Replied tweet '{replied_tweet.id}' has photos: {photos}")
+            elif replied_tweet.is_quote_status:
+                quoted_tweet = get_tweet(self.api, replied_tweet.quoted_status_id)
+                if tweet_has_photo(quoted_tweet):
+                    photos = get_photos(quoted_tweet)
+                    logger.info(f"Replied quoted tweet '{quoted_tweet.id}' "
+                                f"has photos: {photos}")
         elif tweet.is_quote_status:
             quoted_tweet = get_tweet(self.api, tweet.quoted_status_id)
             if tweet_has_photo(quoted_tweet):
