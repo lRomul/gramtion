@@ -36,17 +36,17 @@ Links to [example 1](https://twitter.com/GramtionBot/status/1320423819794960384)
 
 Gramtion is mainly built from ready-to-use third party libraries:
 * Image captioning model taken from [self-critical.pytorch](https://github.com/ruotianluo/self-critical.pytorch).
+* Evaluate text and image similarity with [CLIP](https://openai.com/blog/clip/) by OpenAI.
+* OCR and image labels by [Google Vision Ai](https://cloud.google.com/vision).
 * Bot written with [Tweepy](https://github.com/tweepy/tweepy).
 * Configuration settings implemented with [pydantic](https://github.com/samuelcolvin/pydantic/).
 * Docker image based on [Dokai](https://github.com/osai-ai/dokai).
-* Image labels by Google [Vision Ai](https://cloud.google.com/vision).
 
 ## Current issues 
 
-* The model can only handle photos, for other types of images the predictions are quite random.
 * Some descriptions may be confusing. Annotations may be created by using polls about prediction quality and getting corrected descriptions from users. Twitter API v1.1 has not the ability to create polls, but it will be added in API v2 endpoint `POST /2/tweets`.
+* For drawings and some other types of images, the predictions are pretty random. 
 * Some results may reflect inherent gender and racial biases of open datasets.
-* Still waiting for feedback from visually impaired users to add some features or change the interface to make the bot more accessible.
 
 ## Run own bot
 
@@ -71,7 +71,7 @@ If you have a Twitter developer account, but don't want to use it as a bot accou
         --env-file .env \
         -v google_key.json:/workdir/google_key.json \
         --name=gramtion \
-        ghcr.io/lromul/gramtion:0.0.3
+        ghcr.io/lromul/gramtion:0.0.5
     ```
 
 * Open logs 
