@@ -30,6 +30,9 @@ RUN pip3 install --no-cache-dir --no-deps \
 
 RUN python3 -c "import clip; clip.load('ViT-B/32', device='cpu')"
 
-EXPOSE 7518
 COPY . /workdir
+
+RUN pip3 install --no-cache-dir -r tests/requirements.txt
+
+EXPOSE 7518
 CMD ["python", "src/twitter_bot.py"]

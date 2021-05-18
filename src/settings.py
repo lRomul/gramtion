@@ -29,7 +29,7 @@ class Settings(BaseSettings):
         if value in {"old", "new"} or value.isnumeric():
             return value
         else:
-            raise ValueError(f"Since id must be 'old'/'new' or numeric")
+            raise ValueError("Since id must be 'old'/'new' or numeric")
 
     class Config:
         env_file = ".env"

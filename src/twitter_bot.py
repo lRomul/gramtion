@@ -64,7 +64,7 @@ def tweet_text_to(api, tweet, text: str):
         logger.error(f"Raised Tweep error: {error}")
         if error.api_code == 186:
             # TODO: Find urls and recalculate length
-            logger.info(f"Try to replace urls")
+            logger.info("Try to replace urls")
             tweet = api.update_status(
                 status=text.replace(".", ","),
                 in_reply_to_status_id=tweet.id,
@@ -119,10 +119,10 @@ class TwitterMentionProcessor:
     def init_since_id(self, since_id: str) -> int:
         if since_id in {"old", "new"}:
             if since_id == "old":
-                logger.info(f"Get id of last tweet by bot")
+                logger.info("Get id of last tweet by bot")
                 tweets = self.api.user_timeline(id=self.me.id, count=1)
             else:
-                logger.info(f"Get id of last tweet with bot mention")
+                logger.info("Get id of last tweet with bot mention")
                 tweets = self.api.mentions_timeline(count=1)
             since_id = 1
             if tweets:
