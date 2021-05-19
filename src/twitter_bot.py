@@ -188,6 +188,7 @@ class TwitterMentionProcessor:
         logger.info(f"Start processing tweet '{tweet.id}'")
 
         photos = self.fetch_photos(tweet)
+        tweet_texts = []
         if photos:
             tweet_texts = self.process_photos(photos)
             if post:
