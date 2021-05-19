@@ -150,9 +150,7 @@ class TwitterMentionProcessor:
         tweet_texts = merge_small_messages(messages)
         return tweet_texts
 
-    def process_tweet(self, tweet, post=True, post_attempts: int = 3):
-        logger.info(f"Start processing tweet '{tweet.id}'")
-
+    def fetch_photos(self, tweet):
         photos = []
         if tweet_has_photo(tweet):
             photos = get_photos(tweet)
@@ -173,21 +171,27 @@ class TwitterMentionProcessor:
             if tweet_has_photo(quoted_tweet):
                 photos = get_photos(quoted_tweet)
                 logger.info(f"Quoted tweet '{quoted_tweet.id}' has photos: {photos}")
+        return photos
 
-        tweet_texts = []
+    def post_tweets(self, tweet_texts, tweet, post_attempts: int = 3):
+        for text in tweet_texts:
+            for attempt in range(post_attempts):
+                try:
+                    tweet = tweet_text_to(self.api, tweet, text)
+                    break  # exit attempt loop if error not caused
+                except tweepy.TweepError as error:
+                    logger.error(f"On {attempt + 1} attempt to post a tweet"
+                                 f" caused error: {error}")
+                    time.sleep(1.0)
+
+    def process_tweet(self, tweet, post=True):
+        logger.info(f"Start processing tweet '{tweet.id}'")
+
+        photos = self.fetch_photos(tweet)
         if photos:
             tweet_texts = self.process_photos(photos)
-
-        if tweet_texts and post:
-            for text in tweet_texts:
-                for attempt in range(post_attempts):
-                    try:
-                        tweet = tweet_text_to(self.api, tweet, text)
-                        break  # exit attempt loop if error not caused
-                    except tweepy.TweepError as error:
-                        logger.error(f"On {attempt + 1} attempt to post a tweet"
-                                     f" caused error: {error}")
-                        time.sleep(1.0)
+            if post:
+                self.post_tweets(tweet_texts, tweet)
 
         logger.info(f"Finish processing, tweets: {tweet_texts}")
         return tweet_texts
