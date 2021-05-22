@@ -102,7 +102,8 @@ class TwitterMentionProcessor:
         caption_processor: PredictionProcessor,
         since_id: str = "old",
         sleep: float = 14.0,
-        tweets_queue: Optional[Queue] = None
+        tweets_queue: Optional[Queue] = None,
+        debug: bool = False
     ):
         self.api = api
         self.caption_predictor = caption_predictor
@@ -110,6 +111,7 @@ class TwitterMentionProcessor:
         self.google_predictor = google_predictor
         self.sleep = sleep
         self.tweets_queue = tweets_queue
+        self.debug = debug
         self.me = api.me()
         self.caption_processor = caption_processor
         self.since_id = self.init_since_id(since_id)
@@ -184,14 +186,14 @@ class TwitterMentionProcessor:
                                  f" caused error: {error}")
                     time.sleep(1.0)
 
-    def process_tweet(self, tweet, post=True):
+    def process_tweet(self, tweet):
         logger.info(f"Start processing tweet '{tweet.id}'")
 
         photos = self.fetch_photos(tweet)
         tweet_texts = []
         if photos:
             tweet_texts = self.process_photos(photos)
-            if post:
+            if not self.debug:
                 self.post_tweets(tweet_texts, tweet)
 
         logger.info(f"Finish processing, tweets: {tweet_texts}")
@@ -270,14 +272,17 @@ if __name__ == "__main__":
         "feature_config_path": settings.feature_config_path,
         "caption_checkpoint_path": settings.caption_checkpoint_path,
         "caption_config_path": settings.caption_config_path,
-        "beam_size": 32,
-        "sample_n": 32,
+        "beam_size": settings.caption_beam_size,
+        "sample_n": settings.caption_sample_n,
         "device": settings.device,
     }
     caption_predictor = CaptionPredictor(**predictor_params)
     logger.info(f"Caption predictor loaded: {caption_predictor}")
 
-    google_predictor = GoogleVisionPredictor(score_threshold=0.7, max_number=5)
+    google_predictor = GoogleVisionPredictor(
+        score_threshold=settings.label_score_threshold,
+        max_number=settings.label_max_number
+    )
     logger.info(f"Google predictor loaded: {google_predictor}")
 
     clip_predictor = ClipPredictor(
@@ -287,9 +292,9 @@ if __name__ == "__main__":
     logger.info(f"Clip predictor loaded: {clip_predictor}")
 
     caption_processor = PredictionProcessor(
-        clip_min_confidence=0.0,
-        max_text_area_for_caption=0.3,
-        min_text_area_for_ocr=0.03
+        clip_min_confidence=settings.clip_min_confidence_for_caption,
+        max_text_area_for_caption=settings.max_text_area_for_caption,
+        min_text_area_for_ocr=settings.min_text_area_for_ocr
     )
     logger.info(f"Prediction processor created: {caption_processor}")
 
@@ -300,8 +305,9 @@ if __name__ == "__main__":
         google_predictor,
         caption_processor,
         since_id=settings.since_id,
-        sleep=14.0,
-        tweets_queue=tweets_queue
+        sleep=settings.mention_loop_sleep,
+        tweets_queue=tweets_queue,
+        debug=settings.debug
     )
     processor.start()
     run_web_server()
