@@ -51,7 +51,7 @@ def tweet_is_reply(tweet) -> bool:
     return tweet.in_reply_to_status_id is not None
 
 
-def tweet_text_to(api, tweet, text: str):
+def tweet_text_to(api, tweet, text: str, resend_long: bool = True):
     logger.info(f"Tweet to {tweet.id}: {text}")
     try:
         tweet = api.update_status(
@@ -62,15 +62,11 @@ def tweet_text_to(api, tweet, text: str):
         logger.info(f"New tweet id '{tweet.id}'")
     except tweepy.TweepError as error:
         logger.error(f"Raised Tweep error: {error}")
-        if error.api_code == 186:
-            # TODO: Find urls and recalculate length
-            logger.info("Try to replace urls")
-            tweet = api.update_status(
-                status=text.replace(".", ","),
-                in_reply_to_status_id=tweet.id,
-                auto_populate_reply_metadata=True,
-            )
-            logger.info(f"New tweet id '{tweet.id}'")
+        if resend_long and error.api_code == 186:
+            logger.info("Split too long tweet and resend")
+            split_index = len(text) // 2
+            tweet = tweet_text_to(api, tweet, text[:split_index], resend_long=False)
+            tweet = tweet_text_to(api, tweet, text[split_index:], resend_long=False)
         else:
             raise error
     return tweet
