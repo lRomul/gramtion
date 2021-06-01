@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     feature_config_path: Path = "/model_data/detectron_model.yaml"
     caption_checkpoint_path: Path = "/model_data/model-best.pth"
     caption_config_path: Path = "/model_data/infos_trans12-best.pkl"
-    caption_beam_size: int = 64
-    caption_sample_n: int = 64
+    caption_beam_size: int = 32
+    caption_sample_n: int = 32
     clip_min_confidence_for_caption: float = 0.0
     max_text_area_for_caption: float = 0.3
     min_text_area_for_ocr: float = 0.03
