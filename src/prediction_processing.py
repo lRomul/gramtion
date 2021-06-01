@@ -1,3 +1,4 @@
+import re
 import textwrap
 from typing import List
 
@@ -61,7 +62,11 @@ class PredictionProcessor:
             caption_text = f"Alt text: {caption.text}\n"
 
         if prediction.ocr_text.area > self.min_text_area_for_ocr:
-            caption_text += f"Сontains text:\n{prediction.ocr_text.text}"
+            # Avoid mentions, replace '@username' to '@ username'
+            ocr_text = re.sub(r'(^|[^@\w])@(\w{1,15})\b',
+                              r"\g<1>@ \g<2>",
+                              prediction.ocr_text.text)
+            caption_text += f"Сontains text:\n{ocr_text}"
 
         message += caption_text
 
