@@ -13,6 +13,13 @@ def caption_has_unknown(prediction: PhotoPrediction):
     return False
 
 
+def has_labels(prediction: PhotoPrediction, labels: List[str]):
+    for label in prediction.labels:
+        if label.name in labels:
+            return True
+    return False
+
+
 def split_message(message: str, max_splits=99):
     if len(message) <= settings.twitter_char_limit:
         return [message]
@@ -45,6 +52,7 @@ class PredictionProcessor:
 
         caption_text = ""
         if not caption.alt_text and not caption_has_unknown(prediction) \
+                and not has_labels(prediction, ['Screenshot']) \
                 and prediction.ocr_text.area < self.max_text_area_for_caption \
                 and caption.confidence >= self.clip_min_confidence:
             caption_text = caption.text.lower().capitalize() + "."
