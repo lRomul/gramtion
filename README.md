@@ -7,7 +7,7 @@
 
 ---
 
-**Twitter**: <a href="https://twitter.com/GramtionBot" target="_blank">https://twitter.com/GramtionBot</a>
+**Twitter (Bot account suspended)**: <a href="https://twitter.com/GramtionBot" target="_blank">https://twitter.com/GramtionBot</a>
 
 **Source Code**: <a href="https://github.com/lRomul/gramtion" target="_blank">https://github.com/lRomul/gramtion</a>
 
@@ -26,10 +26,7 @@ Twitter API v1.1 has not the ability to create polls, but it will be added in AP
 
 ## How to use
 
-Tweet photo with mention [@GramtionBot](https://twitter.com/GramtionBot) or reply with mention to a tweet with a photo and the bot will send you an auto-generated image description.
-
-![example 1](pics/example1.jpeg) ![example 2](pics/example2.jpeg)
-
+Tweet photo with mention [@GramtionBot](https://twitter.com/GramtionBot) or reply with mention to a tweet with a photo and the bot will send you an auto-generated image description.  
 Links to [example 1](https://twitter.com/GramtionBot/status/1320423819794960384) and [example 2](https://twitter.com/snoWhite_tan/status/963953292383580165) tweets.
 
 ## Dependencies
